@@ -1,0 +1,12 @@
+# Jamais envoyé à Vercel lors d'un déploiement depuis le poste (CLI) :
+# secrets locaux, artefacts de build et de test, client Prisma généré (régénéré sur Vercel).
+.env
+.env.*
+!.env.example
+.next
+node_modules
+coverage
+test-results
+playwright-report
+src/generated
+.claude/settings.local.json
