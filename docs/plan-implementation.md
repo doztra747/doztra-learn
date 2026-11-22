@@ -177,4 +177,4 @@ Inscription des apprenants et vérification de l'e-mail (F-01, RG-01, RG-03), mo
 | Envoi d'e-mails | Avant la phase 3 (vérification d'e-mail, mot de passe oublié) | Fournisseur SMTP (Brevo, Mailgun…) ; en local, Mailpit installé sans Docker |
 | Agrégateur de paiement | Avant la phase 7 | CinetPay, PayDunya, Lengo Pay |
 | Dépendances proposées | À la phase concernée | `arctic`, `otplib`, `rate-limiter-flexible`, `@asteasolutions/zod-to-openapi`, `@dnd-kit` (adoptés : `zod`, Prisma, Jest, Playwright en phase 1 ; `@node-rs/argon2`, `pino`, `tsx` en phase 2) |
-| Photos (accueil, formateur, connexion) | Avant la mise en ligne | Fournies par Doztra ; emplacements prévus en attendant |
+| Photos | Fait le 22/11/2026 pour l'accueil, la connexion et l'inscription (licences libres, voir `docs/credits-photos.md`) | Reste : **vrai portrait du formateur** à fournir par Doztra (la section formateur montre un écran de code, sans visage) |
