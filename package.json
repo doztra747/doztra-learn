@@ -57,5 +57,8 @@
   },
   "engines": {
     "node": ">=24"
+  },
+  "overrides": {
+    "effect": "^3.22.1"
   }
 }
