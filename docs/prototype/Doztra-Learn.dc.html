@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<script src="./image-slot.js"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#FAF6F0;color:#142422;font-family:'Plus Jakarta Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:#0F3D3A;text-decoration:none}
+a:hover{color:#B9533F}
+button,input,select{font-family:inherit}
+input:focus,select:focus{outline:2px solid #F4B13B;outline-offset:1px}
+@keyframes dzspin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+
+<header style="position:sticky;top:0;z-index:40;background:rgba(250,246,240,.94);backdrop-filter:blur(10px);border-bottom:1px solid #EAE2D6;">
+  <div style="max-width:1200px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:16px;">
+    <button onClick="{{ goHome }}" style="display:flex;align-items:center;gap:10px;background:none;border:0;cursor:pointer;padding:0;">
+      <span style="width:38px;height:38px;border-radius:11px;background:#0F3D3A;color:#F4B13B;display:grid;place-items:center;font-size:17px;"><i class="fa-solid fa-graduation-cap"></i></span>
+      <span style="font-weight:800;font-size:19px;color:#0F3D3A;letter-spacing:-.02em;">Doztra<span style="color:#E0745E;">-</span>Learn</span>
+    </button>
+    <nav style="display:{{ navDisplay }};gap:4px;margin-left:20px;">
+      <sc-for list="{{ navItems }}" as="n" hint-placeholder-count="3">
+        <button onClick="{{ n.onClick }}" style="border:0;background:{{ n.bg }};color:{{ n.color }};font-weight:600;font-size:14px;padding:9px 14px;border-radius:999px;cursor:pointer;">{{ n.label }}</button>
+      </sc-for>
+    </nav>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
+      <a href="Doztra-Learn Admin.dc.html" style="display:{{ navDisplay }};align-items:center;gap:8px;font-size:14px;font-weight:600;padding:9px 12px;color:#5B6B68;"><i class="fa-solid fa-chart-line"></i>Espace formateur</a>
+      <sc-if value="{{ logged }}" hint-placeholder-val="{{ false }}">
+        <button aria-label="Notifications" style="width:42px;height:42px;border-radius:50%;border:1px solid #EAE2D6;background:#fff;color:#0F3D3A;cursor:pointer;position:relative;"><i class="fa-regular fa-bell"></i><span style="position:absolute;top:9px;right:10px;width:8px;height:8px;border-radius:50%;background:#E0745E;"></span></button>
+        <button onClick="{{ goMine }}" style="width:42px;height:42px;border-radius:50%;border:0;background:#F4B13B;color:#0F3D3A;font-weight:800;font-size:14px;cursor:pointer;">AD</button>
+      </sc-if>
+      <sc-if value="{{ showAuthBtns }}" hint-placeholder-val="{{ true }}">
+        <button onClick="{{ goLogin }}" style="border:1px solid #D9CFBF;background:#fff;color:#0F3D3A;font-weight:700;font-size:14px;padding:10px 16px;border-radius:999px;cursor:pointer;">Connexion</button>
+        <button onClick="{{ goRegister }}" style="border:0;background:#0F3D3A;color:#fff;font-weight:700;font-size:14px;padding:11px 18px;border-radius:999px;cursor:pointer;">S'inscrire</button>
+      </sc-if>
+      <button onClick="{{ toggleMenu }}" aria-label="Menu" style="display:{{ burgerDisplay }};width:42px;height:42px;border-radius:12px;border:1px solid #EAE2D6;background:#fff;color:#0F3D3A;cursor:pointer;font-size:17px;align-items:center;justify-content:center;"><i class="{{ menuIcon }}"></i></button>
+    </div>
+  </div>
+  <sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="border-top:1px solid #EAE2D6;padding:12px 20px 20px;display:flex;flex-direction:column;gap:4px;background:#FAF6F0;">
+      <sc-for list="{{ navItems }}" as="n">
+        <button onClick="{{ n.onClick }}" style="text-align:left;border:0;background:{{ n.bg }};color:{{ n.color }};font-weight:600;font-size:16px;padding:14px 16px;border-radius:12px;cursor:pointer;">{{ n.label }}</button>
+      </sc-for>
+      <a href="Doztra-Learn Admin.dc.html" style="padding:14px 16px;font-weight:600;color:#5B6B68;display:flex;gap:10px;align-items:center;"><i class="fa-solid fa-chart-line"></i>Espace formateur</a>
+      <sc-if value="{{ notLogged }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;gap:10px;margin-top:8px;">
+          <button onClick="{{ goLogin }}" style="flex:1;border:1px solid #D9CFBF;background:#fff;color:#0F3D3A;font-weight:700;font-size:15px;padding:14px;border-radius:999px;cursor:pointer;">Connexion</button>
+          <button onClick="{{ goRegister }}" style="flex:1;border:0;background:#0F3D3A;color:#fff;font-weight:700;font-size:15px;padding:14px;border-radius:999px;cursor:pointer;">S'inscrire</button>
+        </div>
+      </sc-if>
+    </div>
+  </sc-if>
+</header>
+
+<sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+  <main>
+    <section style="max-width:1200px;margin:0 auto;padding:clamp(32px,6vw,80px) 20px clamp(40px,6vw,72px);display:flex;flex-wrap:wrap;gap:clamp(32px,5vw,64px);align-items:center;">
+      <div style="flex:1 1 360px;min-width:0;">
+        <span style="display:inline-flex;align-items:center;gap:8px;background:#FDF1DA;color:#7A4E00;font-size:13px;font-weight:700;padding:7px 14px;border-radius:999px;"><i class="fa-solid fa-circle-play" style="color:#E0745E;"></i>Vidéo, texte, code et PDF au même endroit</span>
+        <h1 style="font-size:clamp(36px,6vw,62px);line-height:1.04;letter-spacing:-.035em;font-weight:800;color:#0F3D3A;margin:20px 0 18px;text-wrap:balance;">Apprenez le numérique à votre rythme, <span style="color:#E0745E;">pas à pas.</span></h1>
+        <p style="font-size:clamp(16px,2vw,18px);line-height:1.6;color:#4E5F5C;margin:0 0 28px;max-width:520px;text-wrap:pretty;">Des cours clairs, du code prêt à copier et un suivi de progression jusqu'au certificat. Payez par Orange Money, MTN MoMo ou carte bancaire.</p>
+        <form onSubmit="{{ heroSearch }}" style="display:flex;gap:8px;background:#fff;border:1px solid #E3DACB;border-radius:999px;padding:6px 6px 6px 20px;max-width:520px;box-shadow:0 10px 30px -18px rgba(15,61,58,.35);">
+          <i class="fa-solid fa-magnifying-glass" style="color:#8A9794;align-self:center;"></i>
+          <input value="{{ q }}" onChange="{{ setQ }}" placeholder="JavaScript, Python, SQL…" aria-label="Rechercher un cours" style="flex:1;min-width:0;border:0;outline:0;font-size:16px;background:transparent;color:#142422;"/>
+          <button type="submit" style="border:0;background:#0F3D3A;color:#fff;font-weight:700;font-size:15px;padding:12px 20px;border-radius:999px;cursor:pointer;">Rechercher</button>
+        </form>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:20px;">
+          <button onClick="{{ goCatalog }}" style="border:0;background:#F4B13B;color:#0F3D3A;font-weight:700;font-size:15px;padding:14px 22px;border-radius:999px;cursor:pointer;display:flex;gap:10px;align-items:center;">Explorer le catalogue<i class="fa-solid fa-arrow-right"></i></button>
+          <button onClick="{{ goFree }}" style="border:1px solid #D9CFBF;background:transparent;color:#0F3D3A;font-weight:700;font-size:15px;padding:14px 22px;border-radius:999px;cursor:pointer;">Voir les cours gratuits</button>
+        </div>
+      </div>
+      <div style="flex:1 1 360px;min-width:0;position:relative;">
+        <div style="aspect-ratio:5/4;border-radius:32px;overflow:hidden;background:#F2E6D6;position:relative;">
+          <image-slot id="hero-photo" shape="rect" placeholder="Photo : apprenant·e devant son ordinateur"></image-slot>
+        </div>
+        <div style="position:absolute;left:clamp(-8px,-1vw,0px);bottom:20px;background:#fff;border-radius:18px;padding:14px 16px;box-shadow:0 18px 40px -16px rgba(15,61,58,.4);display:flex;gap:12px;align-items:center;width:min(260px,80%);">
+          <span style="width:40px;height:40px;border-radius:12px;background:#0F3D3A;color:#F4B13B;display:grid;place-items:center;flex:none;"><i class="fa-solid fa-code"></i></span>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:13px;font-weight:700;color:#142422;">JavaScript moderne</div>
+            <div style="height:6px;border-radius:9px;background:#EFE7DA;margin:7px 0 4px;overflow:hidden;"><div style="width:68%;height:100%;background:#E0745E;border-radius:9px;"></div></div>
+            <div style="font-size:12px;color:#5B6B68;">68 % terminé</div>
+          </div>
+        </div>
+        <div style="position:absolute;right:16px;top:16px;background:#0F3D3A;color:#F2E6D6;border-radius:999px;padding:10px 16px;font-size:13px;font-weight:600;display:flex;gap:8px;align-items:center;box-shadow:0 12px 30px -14px rgba(15,61,58,.6);"><i class="fa-solid fa-award" style="color:#F4B13B;"></i>Certificat vérifiable</div>
+      </div>
+    </section>
+
+    <section style="max-width:1200px;margin:0 auto;padding:0 20px 56px;">
+      <div style="display:flex;align-items:end;justify-content:space-between;gap:16px;margin-bottom:20px;">
+        <h2 style="margin:0;font-size:clamp(22px,3vw,30px);letter-spacing:-.02em;color:#0F3D3A;">Catégories populaires</h2>
+        <button onClick="{{ goCatalog }}" style="border:0;background:none;color:#B9533F;font-weight:700;font-size:14px;cursor:pointer;white-space:nowrap;">Tout voir <i class="fa-solid fa-arrow-right"></i></button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;">
+        <sc-for list="{{ categories }}" as="k" hint-placeholder-count="6">
+          <button onClick="{{ k.onClick }}" style="text-align:left;border:1px solid #EAE2D6;background:#fff;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:12px;cursor:pointer;" style-hover="border-color:#0F3D3A;">
+            <span style="width:42px;height:42px;border-radius:12px;background:{{ k.bg }};color:{{ k.fg }};display:grid;place-items:center;font-size:17px;"><i class="{{ k.icon }}"></i></span>
+            <span style="font-weight:700;font-size:15px;color:#142422;">{{ k.name }}</span>
+            <span style="font-size:13px;color:#5B6B68;margin-top:-8px;">{{ k.count }} cours</span>
+          </button>
+        </sc-for>
+      </div>
+    </section>
+
+    <section style="max-width:1200px;margin:0 auto;padding:0 20px 72px;">
+      <div style="display:flex;align-items:end;justify-content:space-between;gap:16px;margin-bottom:20px;">
+        <div>
+          <h2 style="margin:0 0 6px;font-size:clamp(22px,3vw,30px);letter-spacing:-.02em;color:#0F3D3A;">Cours mis en avant</h2>
+          <p style="margin:0;color:#5B6B68;font-size:15px;">Les plus suivis ce mois-ci.</p>
+        </div>
+        <button onClick="{{ goCatalog }}" style="border:0;background:none;color:#B9533F;font-weight:700;font-size:14px;cursor:pointer;white-space:nowrap;">Catalogue <i class="fa-solid fa-arrow-right"></i></button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px;">
+        <sc-for list="{{ featured }}" as="c" hint-placeholder-count="4">
+          <div onClick="{{ c.open }}" style="background:#fff;border:1px solid #EAE2D6;border-radius:22px;padding:10px;display:flex;flex-direction:column;gap:12px;cursor:pointer;transition:transform .2s,box-shadow .2s;" style-hover="transform:translateY(-3px);box-shadow:0 18px 40px -24px rgba(15,61,58,.45);">
+            <div style="position:relative;height:150px;border-radius:15px;background:{{ c.bg }};display:grid;place-items:center;overflow:hidden;">
+              <i class="{{ c.icon }}" style="font-size:46px;color:{{ c.fg }};"></i>
+              <span style="position:absolute;top:10px;left:10px;background:rgba(255,255,255,.94);color:#0F3D3A;font-size:12px;font-weight:700;padding:5px 10px;border-radius:999px;">{{ c.level }}</span>
+              <button onClick="{{ c.toggleFav }}" aria-label="Ajouter aux favoris" style="position:absolute;top:8px;right:8px;width:36px;height:36px;border-radius:50%;border:0;background:rgba(255,255,255,.94);color:#E0745E;cursor:pointer;"><i class="{{ c.favIcon }}"></i></button>
+            </div>
+            <div style="padding:0 6px 6px;display:flex;flex-direction:column;gap:8px;flex:1;">
+              <span style="font-size:12px;font-weight:700;color:#B9533F;text-transform:uppercase;letter-spacing:.06em;">{{ c.cat }}</span>
+              <h3 style="margin:0;font-size:16px;line-height:1.35;font-weight:700;color:#142422;text-wrap:pretty;">{{ c.title }}</h3>
+              <div style="display:flex;gap:14px;font-size:13px;color:#5B6B68;"><span><i class="fa-regular fa-file-lines"></i> {{ c.lessons }} leçons</span><span><i class="fa-regular fa-clock"></i> {{ c.hours }}</span></div>
+              <div style="margin-top:auto;display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px dashed #E3DACB;">
+                <span style="font-size:13px;color:#142422;font-weight:700;"><i class="fa-solid fa-star" style="color:#F4B13B;"></i> {{ c.rating }} <span style="color:#5B6B68;font-weight:500;">({{ c.reviews }})</span></span>
+                <span style="font-weight:800;color:#0F3D3A;font-size:15px;">{{ c.priceLabel }}</span>
+              </div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <section style="background:#0F3D3A;color:#F2E6D6;">
+      <div style="max-width:1200px;margin:0 auto;padding:clamp(48px,7vw,88px) 20px;">
+        <h2 style="margin:0 0 10px;font-size:clamp(26px,4vw,40px);letter-spacing:-.03em;color:#fff;max-width:620px;text-wrap:balance;">Pensé pour apprendre vraiment, même en 4G.</h2>
+        <p style="margin:0 0 40px;color:#C9D8D4;font-size:16px;max-width:560px;line-height:1.6;">Tout le contenu d'un cours au même endroit, avec une mise en forme soignée et un suivi clair.</p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:28px;">
+          <sc-for list="{{ features }}" as="f" hint-placeholder-count="4">
+            <div style="display:flex;flex-direction:column;gap:12px;padding-top:20px;border-top:1px solid rgba(242,230,214,.2);">
+              <i class="{{ f.icon }}" style="font-size:22px;color:#F4B13B;"></i>
+              <h3 style="margin:0;font-size:18px;color:#fff;">{{ f.title }}</h3>
+              <p style="margin:0;font-size:15px;line-height:1.6;color:#C9D8D4;">{{ f.text }}</p>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+
+    <section style="max-width:1200px;margin:0 auto;padding:clamp(48px,7vw,88px) 20px;display:flex;flex-wrap:wrap;gap:clamp(28px,5vw,56px);align-items:center;">
+      <div style="flex:0 1 320px;min-width:240px;aspect-ratio:1;border-radius:28px;overflow:hidden;background:#F2E6D6;position:relative;">
+        <image-slot id="trainer-photo" shape="rect" placeholder="Portrait du formateur"></image-slot>
+      </div>
+      <div style="flex:1 1 360px;min-width:0;">
+        <span style="font-size:13px;font-weight:700;color:#B9533F;text-transform:uppercase;letter-spacing:.08em;">Votre formateur</span>
+        <h2 style="margin:10px 0 6px;font-size:clamp(26px,4vw,38px);letter-spacing:-.03em;color:#0F3D3A;">Ibrahima Bayo</h2>
+        <p style="margin:0 0 18px;color:#5B6B68;font-weight:600;">Développeur full stack · Fondateur de Doztra</p>
+        <p style="margin:0 0 24px;font-size:16px;line-height:1.7;color:#3D4F4C;max-width:560px;text-wrap:pretty;">J'enseigne le développement web et la data à partir de projets concrets. Chaque cours est conçu pour être suivi depuis un téléphone, avec des explications vidéo courtes et du code que vous pouvez réutiliser.</p>
+        <button onClick="{{ goCatalog }}" style="border:1px solid #0F3D3A;background:transparent;color:#0F3D3A;font-weight:700;font-size:15px;padding:13px 22px;border-radius:999px;cursor:pointer;">Voir tous ses cours</button>
+      </div>
+    </section>
+
+    <section style="max-width:1200px;margin:0 auto;padding:0 20px 72px;">
+      <div style="background:#F4B13B;border-radius:32px;padding:clamp(28px,5vw,56px);display:flex;flex-wrap:wrap;gap:24px;align-items:center;justify-content:space-between;">
+        <div style="flex:1 1 320px;">
+          <h2 style="margin:0 0 8px;font-size:clamp(24px,3.5vw,36px);letter-spacing:-.03em;color:#0F3D3A;text-wrap:balance;">Prêt à commencer ? Votre compte est gratuit.</h2>
+          <p style="margin:0;color:#3B3214;font-size:16px;">Accédez aux leçons en aperçu et aux cours gratuits dès aujourd'hui.</p>
+        </div>
+        <button onClick="{{ goRegister }}" style="border:0;background:#0F3D3A;color:#fff;font-weight:700;font-size:16px;padding:16px 26px;border-radius:999px;cursor:pointer;">Créer mon compte</button>
+      </div>
+    </section>
+  </main>
+</sc-if>
+
+
+<sc-if value="{{ isCatalog }}" hint-placeholder-val="{{ false }}">
+  <main style="max-width:1200px;margin:0 auto;padding:clamp(24px,4vw,48px) 20px 72px;">
+    <h1 style="margin:0 0 6px;font-size:clamp(28px,4vw,40px);letter-spacing:-.03em;color:#0F3D3A;">Catalogue des cours</h1>
+    <p style="margin:0 0 24px;color:#5B6B68;font-size:16px;">Filtrez par catégorie, niveau ou prix. La recherche tolère les accents.</p>
+    <div style="display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #E3DACB;border-radius:16px;padding:0 16px;max-width:640px;">
+      <i class="fa-solid fa-magnifying-glass" style="color:#8A9794;"></i>
+      <input value="{{ q }}" onChange="{{ setQ }}" placeholder="Rechercher un cours, une techno…" aria-label="Rechercher" style="flex:1;min-width:0;border:0;outline:0;font-size:16px;padding:15px 0;background:transparent;"/>
+      <sc-if value="{{ hasQ }}" hint-placeholder-val="{{ false }}"><button onClick="{{ clearQ }}" aria-label="Effacer" style="border:0;background:none;color:#5B6B68;cursor:pointer;font-size:16px;"><i class="fa-solid fa-xmark"></i></button></sc-if>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;margin:22px 0 28px;">
+      <div style="display:flex;gap:10px;align-items:center;min-width:0;">
+        <span style="font-size:13px;font-weight:700;color:#5B6B68;width:78px;flex:none;">Catégorie</span>
+        <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;min-width:0;">
+          <sc-for list="{{ catChips }}" as="ch" hint-placeholder-count="6"><button onClick="{{ ch.onClick }}" style="flex:none;border:1px solid {{ ch.border }};background:{{ ch.bg }};color:{{ ch.color }};font-weight:600;font-size:14px;padding:9px 15px;border-radius:999px;cursor:pointer;white-space:nowrap;">{{ ch.label }}</button></sc-for>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;min-width:0;">
+        <span style="font-size:13px;font-weight:700;color:#5B6B68;width:78px;flex:none;">Niveau</span>
+        <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;min-width:0;">
+          <sc-for list="{{ levelChips }}" as="ch" hint-placeholder-count="4"><button onClick="{{ ch.onClick }}" style="flex:none;border:1px solid {{ ch.border }};background:{{ ch.bg }};color:{{ ch.color }};font-weight:600;font-size:14px;padding:9px 15px;border-radius:999px;cursor:pointer;white-space:nowrap;">{{ ch.label }}</button></sc-for>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;min-width:0;">
+        <span style="font-size:13px;font-weight:700;color:#5B6B68;width:78px;flex:none;">Prix</span>
+        <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;min-width:0;">
+          <sc-for list="{{ priceChips }}" as="ch" hint-placeholder-count="3"><button onClick="{{ ch.onClick }}" style="flex:none;border:1px solid {{ ch.border }};background:{{ ch.bg }};color:{{ ch.color }};font-weight:600;font-size:14px;padding:9px 15px;border-radius:999px;cursor:pointer;white-space:nowrap;">{{ ch.label }}</button></sc-for>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+      <span style="font-weight:700;color:#142422;">{{ resultCount }}</span>
+      <label style="display:flex;align-items:center;gap:8px;font-size:14px;color:#5B6B68;">Trier par
+        <select style="border:1px solid #E3DACB;background:#fff;border-radius:10px;padding:9px 12px;font-size:14px;color:#142422;"><option>Les plus populaires</option><option>Les mieux notés</option><option>Nouveautés</option><option>Prix croissant</option></select>
+      </label>
+    </div>
+    <sc-if value="{{ noResults }}" hint-placeholder-val="{{ false }}">
+      <div style="background:#fff;border:1px dashed #D9CFBF;border-radius:22px;padding:48px 20px;text-align:center;">
+        <i class="fa-solid fa-magnifying-glass" style="font-size:28px;color:#B5BFBC;"></i>
+        <h3 style="margin:14px 0 6px;color:#0F3D3A;">Aucun cours ne correspond</h3>
+        <p style="margin:0 0 18px;color:#5B6B68;">Essayez un autre mot-clé ou retirez un filtre.</p>
+        <button onClick="{{ resetFilters }}" style="border:0;background:#0F3D3A;color:#fff;font-weight:700;padding:12px 20px;border-radius:999px;cursor:pointer;">Réinitialiser les filtres</button>
+      </div>
+    </sc-if>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px;">
+      <sc-for list="{{ results }}" as="c" hint-placeholder-count="8">
+        <div onClick="{{ c.open }}" style="background:#fff;border:1px solid #EAE2D6;border-radius:22px;padding:10px;display:flex;flex-direction:column;gap:12px;cursor:pointer;transition:transform .2s,box-shadow .2s;" style-hover="transform:translateY(-3px);box-shadow:0 18px 40px -24px rgba(15,61,58,.45);">
+          <div style="position:relative;height:150px;border-radius:15px;background:{{ c.bg }};display:grid;place-items:center;overflow:hidden;">
+            <i class="{{ c.icon }}" style="font-size:46px;color:{{ c.fg }};"></i>
+            <span style="position:absolute;top:10px;left:10px;background:rgba(255,255,255,.94);color:#0F3D3A;font-size:12px;font-weight:700;padding:5px 10px;border-radius:999px;">{{ c.level }}</span>
+            <button onClick="{{ c.toggleFav }}" aria-label="Ajouter aux favoris" style="position:absolute;top:8px;right:8px;width:36px;height:36px;border-radius:50%;border:0;background:rgba(255,255,255,.94);color:#E0745E;cursor:pointer;"><i class="{{ c.favIcon }}"></i></button>
+          </div>
+          <div style="padding:0 6px 6px;display:flex;flex-direction:column;gap:8px;flex:1;">
+            <span style="font-size:12px;font-weight:700;color:#B9533F;text-transform:uppercase;letter-spacing:.06em;">{{ c.cat }}</span>
+            <h3 style="margin:0;font-size:16px;line-height:1.35;font-weight:700;color:#142422;text-wrap:pretty;">{{ c.title }}</h3>
+            <div style="display:flex;gap:14px;font-size:13px;color:#5B6B68;"><span><i class="fa-regular fa-file-lines"></i> {{ c.lessons }} leçons</span><span><i class="fa-regular fa-clock"></i> {{ c.hours }}</span></div>
+            <div style="margin-top:auto;display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px dashed #E3DACB;">
+              <span style="font-size:13px;color:#142422;font-weight:700;"><i class="fa-solid fa-star" style="color:#F4B13B;"></i> {{ c.rating }} <span style="color:#5B6B68;font-weight:500;">({{ c.reviews }})</span></span>
+              <span style="display:flex;gap:8px;align-items:baseline;"><sc-if value="{{ c.hasOld }}"><s style="font-size:12px;color:#8A9794;">{{ c.oldLabel }}</s></sc-if><span style="font-weight:800;color:#0F3D3A;font-size:15px;">{{ c.priceLabel }}</span></span>
+            </div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </main>
+</sc-if>
+
+<sc-if value="{{ isCourse }}" hint-placeholder-val="{{ false }}">
+  <main>
+    <section style="background:#0F3D3A;color:#F2E6D6;">
+      <div style="max-width:1200px;margin:0 auto;padding:clamp(28px,5vw,56px) 20px;display:flex;flex-wrap:wrap;gap:32px;align-items:center;">
+        <div style="flex:1 1 420px;min-width:0;">
+          <button onClick="{{ goCatalog }}" style="border:0;background:none;color:#C9D8D4;font-size:14px;font-weight:600;cursor:pointer;padding:0;margin-bottom:18px;display:flex;gap:8px;align-items:center;"><i class="fa-solid fa-arrow-left"></i>Catalogue · {{ course.cat }}</button>
+          <h1 style="margin:0 0 14px;font-size:clamp(28px,4.5vw,46px);line-height:1.1;letter-spacing:-.03em;color:#fff;text-wrap:balance;">{{ course.title }}</h1>
+          <p style="margin:0 0 22px;font-size:17px;line-height:1.6;color:#C9D8D4;max-width:620px;">{{ course.sub }}</p>
+          <div style="display:flex;flex-wrap:wrap;gap:10px 22px;font-size:14px;color:#E8F1EE;">
+            <span><i class="fa-solid fa-star" style="color:#F4B13B;"></i> <strong>{{ course.rating }}</strong> ({{ course.reviews }} avis)</span>
+            <span><i class="fa-solid fa-signal" style="color:#F4B13B;"></i> {{ course.level }}</span>
+            <span><i class="fa-regular fa-clock" style="color:#F4B13B;"></i> {{ course.hours }} · {{ course.lessons }} leçons</span>
+            <span><i class="fa-solid fa-award" style="color:#F4B13B;"></i> Certificat inclus</span>
+          </div>
+        </div>
+        <div style="flex:1 1 340px;min-width:0;">
+          <button onClick="{{ startPreview }}" aria-label="Voir la présentation" style="width:100%;aspect-ratio:16/9;border:1px solid rgba(242,230,214,.18);border-radius:22px;background:#0A2C2A;cursor:pointer;position:relative;display:grid;place-items:center;overflow:hidden;">
+            <i class="{{ course.icon }}" style="font-size:72px;color:#F4B13B;opacity:.3;"></i>
+            <span style="position:absolute;width:68px;height:68px;border-radius:50%;background:#fff;color:#0F3D3A;display:grid;place-items:center;font-size:22px;box-shadow:0 12px 30px -10px rgba(0,0,0,.4);"><i class="fa-solid fa-play" style="margin-left:4px;"></i></span>
+            <span style="position:absolute;left:14px;bottom:14px;background:rgba(10,44,42,.85);color:#fff;font-size:13px;font-weight:600;padding:6px 12px;border-radius:999px;">Présentation · 2:48</span>
+          </button>
+        </div>
+      </div>
+    </section>
+    <div style="max-width:1200px;margin:0 auto;padding:32px 20px 72px;display:flex;flex-wrap:wrap-reverse;gap:32px;align-items:flex-start;">
+      <div style="flex:3 1 520px;min-width:0;display:flex;flex-direction:column;gap:32px;">
+        <section style="background:#fff;border:1px solid #EAE2D6;border-radius:22px;padding:clamp(20px,3vw,28px);">
+          <h2 style="margin:0 0 16px;font-size:22px;color:#0F3D3A;">Ce que vous allez apprendre</h2>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px 24px;font-size:15px;line-height:1.5;color:#3D4F4C;">
+            <div style="display:flex;gap:10px;"><i class="fa-solid fa-check" style="color:#1F7A5C;margin-top:4px;"></i>Écrire du JavaScript moderne et lisible</div>
+            <div style="display:flex;gap:10px;"><i class="fa-solid fa-check" style="color:#1F7A5C;margin-top:4px;"></i>Manipuler le DOM et gérer les événements</div>
+            <div style="display:flex;gap:10px;"><i class="fa-solid fa-check" style="color:#1F7A5C;margin-top:4px;"></i>Structurer un projet en modules</div>
+            <div style="display:flex;gap:10px;"><i class="fa-solid fa-check" style="color:#1F7A5C;margin-top:4px;"></i>Déboguer avec la console et l'inspecteur</div>
+          </div>
+          <h3 style="margin:24px 0 10px;font-size:16px;color:#142422;">Prérequis</h3>
+          <ul style="margin:0;padding-left:20px;color:#3D4F4C;font-size:15px;line-height:1.8;"><li>Savoir utiliser un ordinateur et un navigateur</li><li>Aucune connaissance en programmation</li></ul>
+        </section>
+        <section>
+          <div style="display:flex;justify-content:space-between;align-items:end;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
+            <h2 style="margin:0;font-size:22px;color:#0F3D3A;">Programme du cours</h2>
+            <span style="font-size:14px;color:#5B6B68;">3 sections · 9 leçons · {{ course.hours }}</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <sc-for list="{{ detailSections }}" as="sec" hint-placeholder-count="3">
+              <div style="background:#fff;border:1px solid #EAE2D6;border-radius:18px;overflow:hidden;">
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 18px;background:#FBF8F3;border-bottom:1px solid #EFE7DA;">
+                  <strong style="color:#142422;font-size:15px;">{{ sec.title }}</strong><span style="font-size:13px;color:#5B6B68;">{{ sec.meta }}</span>
+                </div>
+                <sc-for list="{{ sec.lessons }}" as="l">
+                  <div onClick="{{ l.open }}" style="display:flex;align-items:center;gap:14px;padding:14px 18px;border-top:1px solid #F3EDE3;cursor:{{ l.cursor }};">
+                    <i class="{{ l.icon }}" style="color:#0F3D3A;width:18px;text-align:center;"></i>
+                    <span style="flex:1;min-width:0;font-size:15px;color:#142422;">{{ l.title }}</span>
+                    <span style="font-size:13px;font-weight:700;color:{{ l.rightColor }};">{{ l.rightLabel }}</span>
+                    <span style="font-size:13px;color:#5B6B68;white-space:nowrap;">{{ l.dur }}</span>
+                    <i class="{{ l.rightIcon }}" style="color:{{ l.rightColor }};font-size:13px;"></i>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-for>
+          </div>
+        </section>
+        <section>
+          <h2 style="margin:0 0 14px;font-size:22px;color:#0F3D3A;">Avis des apprenants</h2>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;">
+            <div style="background:#fff;border:1px solid #EAE2D6;border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:10px;">
+              <div style="display:flex;gap:2px;color:#F4B13B;font-size:13px;"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+              <p style="margin:0;font-size:15px;line-height:1.6;color:#3D4F4C;">Les blocs de code sont très clairs et je peux tout suivre sur mon téléphone. J'ai enfin compris la portée des variables.</p>
+              <span style="font-size:13px;font-weight:700;color:#142422;">Mariama C. · Conakry</span>
+            </div>
+            <div style="background:#fff;border:1px solid #EAE2D6;border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:10px;">
+              <div style="display:flex;gap:2px;color:#F4B13B;font-size:13px;"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i></div>
+              <p style="margin:0;font-size:15px;line-height:1.6;color:#3D4F4C;">Vidéos courtes, quiz utiles. Le formateur répond vite aux questions sous les leçons.</p>
+              <span style="font-size:13px;font-weight:700;color:#142422;">Alpha D. · Kindia</span>
+            </div>
+          </div>
+        </section>
+      </div>
+      <aside style="flex:1 1 300px;min-width:0;position:sticky;top:88px;background:#fff;border:1px solid #EAE2D6;border-radius:22px;padding:22px;display:flex;flex-direction:column;gap:14px;box-shadow:0 20px 50px -34px rgba(15,61,58,.5);">
+        <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">
+          <span style="font-size:30px;font-weight:800;color:#0F3D3A;letter-spacing:-.02em;">{{ course.priceLabel }}</span>
+          <sc-if value="{{ course.hasOld }}"><s style="color:#8A9794;font-size:15px;">{{ course.oldLabel }}</s></sc-if>
+        </div>
+        <button onClick="{{ buy }}" style="border:0;background:#0F3D3A;color:#fff;font-weight:700;font-size:16px;padding:16px;border-radius:14px;cursor:pointer;">{{ ctaLabel }}</button>
+        <button onClick="{{ startPreview }}" style="border:1px solid #D9CFBF;background:#fff;color:#0F3D3A;font-weight:700;font-size:15px;padding:14px;border-radius:14px;cursor:pointer;"><i class="fa-regular fa-eye"></i> Voir l'aperçu gratuit</button>
+        <div style="display:flex;gap:10px;align-items:center;font-size:13px;color:#5B6B68;justify-content:center;"><i class="fa-solid fa-mobile-screen-button"></i>Orange Money · MTN MoMo<i class="fa-regular fa-credit-card" style="margin-left:6px;"></i>Carte</div>
+        <div style="border-top:1px solid #EFE7DA;padding-top:14px;display:flex;flex-direction:column;gap:10px;font-size:14px;color:#3D4F4C;">
+          <span><i class="fa-solid fa-circle-play" style="width:20px;color:#0F3D3A;"></i> Vidéos en 360p à 1080p</span>
+          <span><i class="fa-regular fa-file-pdf" style="width:20px;color:#0F3D3A;"></i> Supports PDF téléchargeables</span>
+          <span><i class="fa-solid fa-download" style="width:20px;color:#0F3D3A;"></i> Fichiers sources des projets</span>
+          <span><i class="fa-solid fa-award" style="width:20px;color:#0F3D3A;"></i> Certificat avec QR code</span>
+        </div>
+      </aside>
+    </div>
+  </main>
+</sc-if>
+
+<sc-if value="{{ isAuth }}" hint-placeholder-val="{{ false }}">
+  <main style="max-width:1200px;margin:0 auto;padding:clamp(16px,3vw,32px) 20px 56px;display:flex;flex-wrap:wrap;gap:24px;align-items:stretch;">
+    <div style="flex:1 1 380px;min-width:0;background:#fff;border:1px solid #EAE2D6;border-radius:28px;padding:clamp(24px,5vw,56px);display:flex;flex-direction:column;justify-content:center;">
+      <div style="max-width:400px;width:100%;margin:0 auto;">
+        <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ true }}">
+          <h1 style="margin:0 0 8px;font-size:clamp(28px,4vw,36px);letter-spacing:-.03em;color:#0F3D3A;">Bon retour parmi nous</h1>
+          <p style="margin:0 0 28px;color:#5B6B68;font-size:15px;">Connectez-vous pour reprendre vos cours là où vous les avez laissés.</p>
+        </sc-if>
+        <sc-if value="{{ isRegister }}" hint-placeholder-val="{{ false }}">
+          <h1 style="margin:0 0 8px;font-size:clamp(28px,4vw,36px);letter-spacing:-.03em;color:#0F3D3A;">Créez votre compte</h1>
+          <p style="margin:0 0 28px;color:#5B6B68;font-size:15px;">Gratuit. Un e-mail de vérification vous sera envoyé.</p>
+        </sc-if>
+        <button onClick="{{ submitAuth }}" style="width:100%;border:1px solid #E3DACB;background:#fff;color:#142422;font-weight:600;font-size:15px;padding:14px;border-radius:14px;cursor:pointer;display:flex;gap:10px;align-items:center;justify-content:center;"><span style="font-weight:800;color:#E0745E;font-size:17px;">G</span>Continuer avec Google</button>
+        <div style="display:flex;align-items:center;gap:12px;margin:20px 0;color:#8A9794;font-size:13px;"><span style="flex:1;height:1px;background:#EFE7DA;"></span>ou avec votre e-mail<span style="flex:1;height:1px;background:#EFE7DA;"></span></div>
+        <form onSubmit="{{ submitAuth }}" style="display:flex;flex-direction:column;gap:14px;">
+          <sc-if value="{{ isRegister }}" hint-placeholder-val="{{ false }}">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;">
+              <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:700;color:#3D4F4C;">Prénom<input placeholder="Aïssatou" style="border:1px solid #E3DACB;background:#FBF8F3;border-radius:12px;padding:14px;font-size:16px;"/></label>
+              <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:700;color:#3D4F4C;">Nom<input placeholder="Diallo" style="border:1px solid #E3DACB;background:#FBF8F3;border-radius:12px;padding:14px;font-size:16px;"/></label>
+            </div>
+          </sc-if>
+          <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:700;color:#3D4F4C;">Adresse e-mail<input type="email" placeholder="vous@exemple.com" style="border:1px solid #E3DACB;background:#FBF8F3;border-radius:12px;padding:14px;font-size:16px;"/></label>
+          <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:700;color:#3D4F4C;">Mot de passe
+            <span style="display:flex;align-items:center;border:1px solid #E3DACB;background:#FBF8F3;border-radius:12px;padding-right:6px;">
+              <input type="{{ pwType }}" placeholder="••••••••" style="flex:1;min-width:0;border:0;background:transparent;padding:14px;font-size:16px;outline:0;"/>
+              <button type="button" onClick="{{ togglePw }}" aria-label="Afficher le mot de passe" style="border:0;background:none;width:40px;height:40px;cursor:pointer;color:#5B6B68;"><i class="{{ pwIcon }}"></i></button>
+            </span>
+          </label>
+          <sc-if value="{{ isRegister }}" hint-placeholder-val="{{ false }}">
+            <span style="font-size:13px;color:#5B6B68;margin-top:-6px;"><i class="fa-solid fa-circle-info"></i> 8 caractères minimum, au moins une lettre et un chiffre.</span>
+            <label style="display:flex;gap:10px;font-size:14px;color:#3D4F4C;line-height:1.5;"><input type="checkbox" style="width:18px;height:18px;accent-color:#0F3D3A;margin-top:2px;"/>J'accepte les conditions d'utilisation et la politique de confidentialité.</label>
+          </sc-if>
+          <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-size:14px;">
+              <label style="display:flex;gap:8px;align-items:center;color:#3D4F4C;"><input type="checkbox" checked style="width:18px;height:18px;accent-color:#0F3D3A;"/>Se souvenir de moi</label>
+              <a href="#" style="font-weight:700;color:#B9533F;">Mot de passe oublié ?</a>
+            </div>
+          </sc-if>
+          <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ true }}">
+            <button type="submit" style="border:0;background:#0F3D3A;color:#fff;font-weight:700;font-size:16px;padding:16px;border-radius:14px;cursor:pointer;margin-top:6px;">Se connecter</button>
+          </sc-if>
+          <sc-if value="{{ isRegister }}" hint-placeholder-val="{{ false }}">
+            <button type="submit" style="border:0;background:#0F3D3A;color:#fff;font-weight:700;font-size:16px;padding:16px;border-radius:14px;cursor:pointer;margin-top:6px;">Créer mon compte</button>
+          </sc-if>
+        </form>
+        <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ true }}">
+          <p style="margin:24px 0 0;text-align:center;font-size:15px;color:#5B6B68;">Nouveau sur Doztra-Learn ? <button onClick="{{ toRegister }}" style="border:0;background:none;color:#B9533F;font-weight:700;font-size:15px;cursor:pointer;padding:0;">Créer un compte</button></p>
+        </sc-if>
+        <sc-if value="{{ isRegister }}" hint-placeholder-val="{{ false }}">
+          <p style="margin:24px 0 0;text-align:center;font-size:15px;color:#5B6B68;">Déjà inscrit ? <button onClick="{{ toLogin }}" style="border:0;background:none;color:#B9533F;font-weight:700;font-size:15px;cursor:pointer;padding:0;">Se connecter</button></p>
+        </sc-if>
+      </div>
+    </div>
+    <div style="flex:1 1 380px;min-width:0;min-height:420px;border-radius:28px;overflow:hidden;position:relative;background:#F2E6D6;">
+      <image-slot id="auth-photo" shape="rect" placeholder="Photo : apprenante sur son ordinateur"></image-slot>
+      <div style="position:absolute;left:16px;right:16px;bottom:16px;background:rgba(15,61,58,.92);border-radius:20px;padding:22px;color:#F2E6D6;pointer-events:none;">
+        <h2 style="margin:0 0 8px;font-size:22px;color:#fff;">Votre progression vous suit partout</h2>
+        <p style="margin:0;font-size:15px;line-height:1.6;color:#C9D8D4;">Commencez sur ordinateur, reprenez sur téléphone : la vidéo repart à la bonne seconde.</p>
+      </div>
+    </div>
+  </main>
+</sc-if>
+
+<sc-if value="{{ isPlayer }}" hint-placeholder-val="{{ false }}">
+  <main style="max-width:1320px;margin:0 auto;padding:20px 20px 64px;">
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px;">
+      <button onClick="{{ goMine }}" aria-label="Retour" style="width:42px;height:42px;border-radius:12px;border:1px solid #EAE2D6;background:#fff;color:#0F3D3A;cursor:pointer;"><i class="fa-solid fa-arrow-left"></i></button>
+      <div style="flex:1 1 240px;min-width:0;">
+        <div style="font-size:13px;color:#5B6B68;font-weight:600;">JavaScript moderne : de zéro à l'autonomie</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:6px;">
+          <div style="flex:1;max-width:280px;height:8px;border-radius:9px;background:#EFE7DA;overflow:hidden;"><div style="width:{{ pctBar }};height:100%;background:#E0745E;border-radius:9px;transition:width .4s;"></div></div>
+          <span style="font-size:13px;font-weight:700;color:#142422;">{{ pctLabel }} · {{ doneCount }}/{{ totalLessons }}</span>
+        </div>
+      </div>
+      <button onClick="{{ toggleFocus }}" style="border:1px solid #EAE2D6;background:#fff;color:#0F3D3A;font-weight:600;font-size:14px;padding:11px 14px;border-radius:12px;cursor:pointer;display:flex;gap:8px;align-items:center;"><i class="{{ focusIcon }}"></i>{{ focusLabel }}</button>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start;">
+      <article style="flex:3 1 560px;min-width:0;display:flex;flex-direction:column;gap:20px;">
+        <sc-if value="{{ isVideo }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#0A2C2A;border-radius:22px;overflow:hidden;">
+            <div style="aspect-ratio:16/9;position:relative;display:grid;place-items:center;background:#0A2C2A;">
+              <button aria-label="Lire" style="width:76px;height:76px;border-radius:50%;border:0;background:#F4B13B;color:#0F3D3A;font-size:26px;cursor:pointer;"><i class="fa-solid fa-play" style="margin-left:5px;"></i></button>
+              <span style="position:absolute;top:14px;left:14px;background:rgba(255,255,255,.12);color:#F2E6D6;font-size:13px;font-weight:600;padding:7px 12px;border-radius:999px;"><i class="fa-solid fa-rotate-left"></i> Reprendre à 03:12</span>
+            </div>
+            <div style="padding:12px 16px 14px;display:flex;flex-direction:column;gap:10px;color:#E8F1EE;">
+              <div style="height:6px;border-radius:9px;background:rgba(255,255,255,.15);position:relative;"><div style="width:23%;height:100%;background:#E0745E;border-radius:9px;"></div><span style="position:absolute;left:23%;top:50%;width:14px;height:14px;border-radius:50%;background:#fff;transform:translate(-50%,-50%);"></span></div>
+              <div style="display:flex;align-items:center;gap:16px;font-size:14px;">
+                <i class="fa-solid fa-play"></i><i class="fa-solid fa-volume-high"></i><span style="font-family:'JetBrains Mono',monospace;font-size:13px;">03:12 / 14:30</span>
+                <span style="margin-left:auto;display:flex;gap:14px;align-items:center;"><span style="font-weight:700;">1×</span><span style="font-weight:700;">720p</span><i class="fa-regular fa-closed-captioning"></i><i class="fa-solid fa-expand"></i></span>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ isPdf }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#E9E2D6;border-radius:22px;overflow:hidden;border:1px solid #E3DACB;">
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#fff;border-bottom:1px solid #E3DACB;flex-wrap:wrap;font-size:14px;color:#142422;">
+              <i class="fa-regular fa-file-pdf" style="color:#B9533F;"></i><strong style="flex:1;min-width:120px;">memo-es2024.pdf</strong>
+              <span style="display:flex;gap:6px;align-items:center;"><button aria-label="Page précédente" style="width:34px;height:34px;border:1px solid #E3DACB;background:#fff;border-radius:9px;cursor:pointer;"><i class="fa-solid fa-chevron-left"></i></button>3 / 12<button aria-label="Page suivante" style="width:34px;height:34px;border:1px solid #E3DACB;background:#fff;border-radius:9px;cursor:pointer;"><i class="fa-solid fa-chevron-right"></i></button></span>
+              <span style="display:flex;gap:6px;"><button aria-label="Rechercher" style="width:34px;height:34px;border:1px solid #E3DACB;background:#fff;border-radius:9px;cursor:pointer;"><i class="fa-solid fa-magnifying-glass"></i></button><button aria-label="Zoom" style="width:34px;height:34px;border:1px solid #E3DACB;background:#fff;border-radius:9px;cursor:pointer;"><i class="fa-solid fa-magnifying-glass-plus"></i></button><button aria-label="Télécharger" style="width:34px;height:34px;border:0;background:#0F3D3A;color:#fff;border-radius:9px;cursor:pointer;"><i class="fa-solid fa-download"></i></button></span>
+            </div>
+            <div style="padding:clamp(14px,3vw,32px);">
+              <div style="background:#fff;max-width:560px;margin:0 auto;aspect-ratio:1/1.3;border-radius:6px;box-shadow:0 10px 30px -18px rgba(0,0,0,.4);padding:clamp(18px,4vw,40px);display:flex;flex-direction:column;gap:14px;">
+                <span style="font-size:11px;font-weight:700;letter-spacing:.1em;color:#B9533F;">FICHE MÉMO · PAGE 3</span>
+                <h3 style="margin:0;font-size:clamp(18px,2.4vw,24px);color:#0F3D3A;">Déstructuration et opérateurs</h3>
+                <div style="font-family:'JetBrains Mono',monospace;font-size:clamp(11px,1.4vw,13px);line-height:1.9;color:#142422;background:#FBF8F3;border-radius:8px;padding:12px;">const { nom, age } = user;<br/>const [a, ...reste] = liste;<br/>const total = prix ?? 0;<br/>user?.adresse?.ville;</div>
+                <p style="margin:0;font-size:clamp(12px,1.5vw,14px);line-height:1.7;color:#3D4F4C;">L'opérateur <strong>??</strong> ne remplace que null et undefined, contrairement à <strong>||</strong> qui remplace aussi 0 et la chaîne vide.</p>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+        <div style="background:#fff;border:1px solid #EAE2D6;border-radius:22px;padding:clamp(20px,4vw,40px);">
+          <div style="display:flex;gap:8px;align-items:center;font-size:13px;font-weight:700;color:#B9533F;margin-bottom:10px;"><i class="{{ cur.icon }}"></i>{{ cur.typeLabel }} · {{ cur.section }}</div>
+          <h1 style="margin:0 0 8px;font-size:clamp(24px,3.5vw,34px);letter-spacing:-.025em;color:#0F3D3A;line-height:1.15;">{{ cur.title }}</h1>
+          <p style="margin:0 0 24px;font-size:14px;color:#5B6B68;"><i class="fa-regular fa-clock"></i> {{ cur.dur }}</p>
+
+          <sc-if value="{{ isText }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:17px;line-height:1.75;color:#2B3B38;display:flex;flex-direction:column;gap:18px;max-width:720px;">
+              <p style="margin:0;text-wrap:pretty;">En JavaScript, on stocke une valeur dans une <strong>variable</strong>. Depuis ES2015, deux mots-clés suffisent : <code style="font-family:'JetBrains Mono',monospace;font-size:15px;background:#F3EDE3;padding:2px 6px;border-radius:6px;">const</code> pour une valeur qui ne sera pas réassignée, et <code style="font-family:'JetBrains Mono',monospace;font-size:15px;background:#F3EDE3;padding:2px 6px;border-radius:6px;">let</code> pour une valeur qui changera.</p>
+              <div style="display:flex;gap:14px;background:#FDF1DA;border-radius:16px;padding:16px 18px;">
+                <i class="fa-regular fa-lightbulb" style="color:#7A4E00;font-size:19px;margin-top:4px;"></i>
+                <div><strong style="color:#5A3A00;">Astuce</strong><div style="font-size:15px;line-height:1.6;color:#4A3A1A;">Utilisez <strong>const</strong> par défaut, et passez à <strong>let</strong> seulement si vous devez réassigner la variable.</div></div>
+              </div>
+              <h2 style="margin:8px 0 0;font-size:22px;color:#0F3D3A;">Déclarer et réassigner</h2>
+              <div style="background:#0B2725;border-radius:16px;overflow:hidden;">
+                <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#0F3D3A;color:#C9D8D4;font-size:13px;">
+                  <i class="fa-solid fa-code"></i><span style="font-family:'JetBrains Mono',monospace;">variables.js</span>
+                  <span style="background:rgba(244,177,59,.18);color:#F4B13B;font-weight:700;font-size:11px;padding:3px 8px;border-radius:6px;">JavaScript</span>
+                  <button onClick="{{ copyCode }}" style="margin-left:auto;border:1px solid rgba(242,230,214,.25);background:transparent;color:#F2E6D6;font-size:13px;font-weight:600;padding:6px 12px;border-radius:8px;cursor:pointer;display:flex;gap:6px;align-items:center;"><i class="{{ copyIcon }}"></i>{{ copyLabel }}</button>
+                </div>
+                <div style="overflow-x:auto;padding:12px 0;font-family:'JetBrains Mono',monospace;font-size:14px;line-height:1.75;">
+                  <sc-for list="{{ codeLines }}" as="ln" hint-placeholder-count="8">
+                    <div style="display:flex;background:{{ ln.hl }};border-left:3px solid {{ ln.bar }};min-width:max-content;padding-right:16px;">
+                      <span style="width:44px;flex:none;text-align:right;padding-right:16px;color:#4F6C67;user-select:none;">{{ ln.n }}</span>
+                      <span style="white-space:pre;"><sc-for list="{{ ln.toks }}" as="tk"><span style="color:{{ tk.c }};font-style:{{ tk.st }};">{{ tk.t }}</span></sc-for></span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="display:flex;gap:14px;background:#FBE6E1;border-radius:16px;padding:16px 18px;">
+                <i class="fa-solid fa-triangle-exclamation" style="color:#B9533F;font-size:18px;margin-top:4px;"></i>
+                <div><strong style="color:#8A3A2A;">Attention</strong><div style="font-size:15px;line-height:1.6;color:#5A2A20;">La ligne 8 provoque une <strong>TypeError</strong> : une constante ne peut pas être réassignée.</div></div>
+              </div>
+              <figure style="margin:0;display:flex;flex-direction:column;gap:8px;">
+                <div style="aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:#F2E6D6;position:relative;"><image-slot id="lesson-capture" shape="rect" placeholder="Capture d'écran : console du navigateur"></image-slot></div>
+                <figcaption style="font-size:14px;color:#5B6B68;text-align:center;">Résultat affiché dans la console de Chrome.</figcaption>
+              </figure>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isVideo }}" hint-placeholder-val="{{ false }}">
+            <p style="margin:0;font-size:16px;line-height:1.7;color:#3D4F4C;max-width:720px;">Dans cette vidéo, nous voyons comment déclarer une fonction, la différence entre fonction classique et fonction fléchée, et comment la portée détermine quelles variables sont accessibles.</p>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;">
+              <a href="#" style="display:flex;gap:10px;align-items:center;border:1px solid #E3DACB;border-radius:12px;padding:12px 14px;font-size:14px;font-weight:600;color:#0F3D3A;"><i class="fa-solid fa-download"></i>fonctions-exemples.zip · 12 Ko</a>
+              <a href="#" style="display:flex;gap:10px;align-items:center;border:1px solid #E3DACB;border-radius:12px;padding:12px 14px;font-size:14px;font-weight:600;color:#0F3D3A;"><i class="fa-regular fa-file-pdf"></i>slides-fonctions.pdf</a>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isPdf }}" hint-placeholder-val="{{ false }}">
+            <p style="margin:0;font-size:16px;line-height:1.7;color:#3D4F4C;max-width:720px;">Gardez cette fiche à portée de main pendant les exercices. Le téléchargement est autorisé pour ce document.</p>
+          </sc-if>
+
+          <sc-if value="{{ isQuiz }}" hint-placeholder-val="{{ false }}">
+            <div style="max-width:720px;display:flex;flex-direction:column;gap:16px;">
+              <div style="display:flex;justify-content:space-between;font-size:14px;color:#5B6B68;font-weight:600;flex-wrap:wrap;gap:8px;"><span>Question 1 sur 5</span><span>Score minimum : 70 % · 3 tentatives</span></div>
+              <p style="margin:0;font-size:18px;font-weight:700;color:#142422;line-height:1.5;">Que se passe-t-il à l'exécution de ce code ?</p>
+              <div style="background:#0B2725;border-radius:14px;padding:14px 18px;font-family:'JetBrains Mono',monospace;font-size:14px;line-height:1.8;"><span style="color:#F4B13B;">const </span><span style="color:#E8F1EE;">x</span><span style="color:#9FB8B3;"> = </span><span style="color:#8FD6C2;">5</span><span style="color:#9FB8B3;">;</span><br/><span style="color:#E8F1EE;">x</span><span style="color:#9FB8B3;"> = </span><span style="color:#8FD6C2;">6</span><span style="color:#9FB8B3;">;</span></div>
+              <div style="display:flex;flex-direction:column;gap:10px;">
+                <sc-for list="{{ quizOpts }}" as="o" hint-placeholder-count="4">
+                  <button onClick="{{ o.onClick }}" style="display:flex;gap:14px;align-items:center;text-align:left;border:1.5px solid {{ o.border }};background:{{ o.bg }};border-radius:14px;padding:15px 16px;font-size:16px;color:#142422;cursor:pointer;">
+                    <i class="{{ o.icon }}" style="color:{{ o.ic }};font-size:18px;"></i><span style="font-weight:700;color:#5B6B68;">{{ o.letter }}</span><span>{{ o.t }}</span>
+                  </button>
+                </sc-for>
+              </div>
+              <sc-if value="{{ quizRight }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;gap:12px;background:#E6F3EE;border-radius:14px;padding:16px;color:#14503C;font-size:15px;line-height:1.6;"><i class="fa-solid fa-circle-check" style="margin-top:4px;"></i><div><strong>Bonne réponse.</strong> Une variable déclarée avec const ne peut pas être réassignée : JavaScript lève une TypeError.</div></div>
+              </sc-if>
+              <sc-if value="{{ quizWrong }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;gap:12px;background:#FBE6E1;border-radius:14px;padding:16px;color:#5A2A20;font-size:15px;line-height:1.6;align-items:flex-start;"><i class="fa-solid fa-circle-xmark" style="margin-top:4px;color:#B9533F;"></i><div style="flex:1;"><strong>Pas tout à fait.</strong> Une constante ne peut pas être réassignée : la réponse est B.</div><button onClick="{{ retryQuiz }}" style="border:0;background:#fff;color:#8A3A2A;font-weight:700;padding:8px 12px;border-radius:10px;cursor:pointer;">Réessayer</button></div>
+              </sc-if>
+              <sc-if value="{{ canSubmitQuiz }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ submitQuiz }}" style="align-self:flex-start;border:0;background:#0F3D3A;color:#fff;font-weight:700;font-size:15px;padding:14px 22px;border-radius:12px;cursor:pointer;">Valider ma réponse</button>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:32px;padding-top:24px;border-top:1px solid #EFE7DA;">
+            <sc-if value="{{ hasPrev }}"><button onClick="{{ goPrev }}" style="border:1px solid #E3DACB;background:#fff;color:#0F3D3A;font-weight:600;font-size:14px;padding:13px 16px;border-radius:12px;cursor:pointer;display:flex;gap:8px;align-items:center;"><i class="fa-solid fa-arrow-left"></i>Précédente</button></sc-if>
+            <button onClick="{{ markDone }}" style="margin-left:auto;border:0;background:{{ doneBg }};color:{{ doneColor }};font-weight:700;font-size:14px;padding:13px 18px;border-radius:12px;cursor:pointer;display:flex;gap:8px;align-items:center;"><i class="{{ doneIcon }}"></i>{{ doneLabel }}</button>
+            <sc-if value="{{ hasNext }}"><button onClick="{{ goNext }}" style="border:1px solid #E3DACB;background:#fff;color:#0F3D3A;font-weight:600;font-size:14px;padding:13px 16px;border-radius:12px;cursor:pointer;display:flex;gap:8px;align-items:center;">Suivante<i class="fa-solid fa-arrow-right"></i></button></sc-if>
+          </div>
+        </div>
+
+        <section style="background:#fff;border:1px solid #EAE2D6;border-radius:22px;padding:clamp(20px,3vw,28px);display:flex;flex-direction:column;gap:16px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+            <h2 style="margin:0;font-size:20px;color:#0F3D3A;display:flex;gap:10px;align-items:center;"><i class="fa-regular fa-comments"></i>Questions et réponses</h2>
+            <button style="border:1px solid #E3DACB;background:#fff;color:#0F3D3A;font-weight:700;font-size:14px;padding:10px 14px;border-radius:12px;cursor:pointer;">Poser une question</button>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div style="display:flex;gap:12px;">
+              <span style="width:38px;height:38px;border-radius:50%;background:#FBE6E1;color:#B9533F;font-weight:800;font-size:13px;display:grid;place-items:center;flex:none;">MS</span>
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:14px;"><strong>Moussa S.</strong> <span style="color:#8A9794;">· il y a 2 jours</span></div>
+                <p style="margin:4px 0 10px;font-size:15px;line-height:1.6;color:#2B3B38;">Pourquoi un tableau déclaré avec const peut-il quand même recevoir des éléments avec push ?</p>
+                <div style="background:#E3ECEA;border-radius:14px;padding:14px 16px;">
+                  <div style="font-size:13px;font-weight:700;color:#0F3D3A;display:flex;gap:8px;align-items:center;margin-bottom:4px;"><i class="fa-solid fa-circle-check"></i>Réponse du formateur</div>
+                  <p style="margin:0;font-size:15px;line-height:1.6;color:#1F3533;">const empêche de réassigner la variable, pas de modifier le contenu du tableau. La référence reste la même.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </article>
+
+      <aside style="flex:1 1 300px;min-width:0;display:{{ sidebarDisplay }};flex-direction:column;gap:12px;position:sticky;top:88px;">
+        <div style="background:#fff;border:1px solid #EAE2D6;border-radius:22px;overflow:hidden;">
+          <div style="padding:16px 18px;border-bottom:1px solid #EFE7DA;"><strong style="font-size:16px;color:#0F3D3A;">Programme</strong></div>
+          <sc-for list="{{ playerSections }}" as="sec" hint-placeholder-count="3">
+            <div style="padding:10px 10px 6px;">
+              <div style="padding:6px 8px 8px;display:flex;justify-content:space-between;gap:8px;"><strong style="font-size:14px;color:#142422;">{{ sec.title }}</strong><span style="font-size:12px;color:#5B6B68;">{{ sec.meta }}</span></div>
+              <sc-for list="{{ sec.lessons }}" as="l">
+                <button onClick="{{ l.onClick }}" style="width:100%;text-align:left;border:0;background:{{ l.bg }};border-radius:12px;padding:11px 10px;display:flex;gap:12px;align-items:center;cursor:pointer;">
+                  <i class="{{ l.stIcon }}" style="color:{{ l.stColor }};font-size:16px;"></i>
+                  <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;">
+                    <span style="font-size:14px;color:{{ l.titleColor }};font-weight:{{ l.weight }};line-height:1.35;">{{ l.title }}</span>
+                    <span style="font-size:12px;color:#5B6B68;display:flex;gap:6px;align-items:center;"><i class="{{ l.icon }}"></i>{{ l.dur }}</span>
+                  </span>
+                </button>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+      </aside>
+    </div>
+  </main>
+</sc-if>
+
+<sc-if value="{{ isMine }}" hint-placeholder-val="{{ false }}">
+  <main style="max-width:1200px;margin:0 auto;padding:clamp(24px,4vw,48px) 20px 72px;display:flex;flex-direction:column;gap:28px;">
+    <div>
+      <h1 style="margin:0 0 6px;font-size:clamp(28px,4vw,40px);letter-spacing:-.03em;color:#0F3D3A;">Bonjour Aïssatou</h1>
+      <p style="margin:0;color:#5B6B68;font-size:16px;">Reprenez là où vous vous êtes arrêtée.</p>
+    </div>
+    <div style="background:#0F3D3A;border-radius:26px;padding:clamp(20px,4vw,32px);display:flex;flex-wrap:wrap;gap:20px;align-items:center;color:#F2E6D6;">
+      <span style="width:64px;height:64px;border-radius:18px;background:#F4B13B;color:#0F3D3A;display:grid;place-items:center;font-size:26px;flex:none;"><i class="fa-solid fa-code"></i></span>
+      <div style="flex:1 1 260px;min-width:0;">
+        <div style="font-size:13px;font-weight:700;color:#F4B13B;letter-spacing:.06em;text-transform:uppercase;">Dernière leçon</div>
+        <div style="font-size:20px;font-weight:700;color:#fff;margin:4px 0;">{{ resumeTitle }}</div>
+        <div style="font-size:14px;color:#C9D8D4;">JavaScript moderne : de zéro à l'autonomie</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:12px;max-width:360px;"><div style="flex:1;height:8px;border-radius:9px;background:rgba(255,255,255,.15);overflow:hidden;"><div style="width:{{ resumeBar }};height:100%;background:#F4B13B;"></div></div><span style="font-size:13px;font-weight:700;">{{ resumePct }}</span></div>
+      </div>
+      <button onClick="{{ resume }}" style="border:0;background:#F4B13B;color:#0F3D3A;font-weight:700;font-size:15px;padding:15px 22px;border-radius:999px;cursor:pointer;display:flex;gap:10px;align-items:center;"><i class="fa-solid fa-play"></i>Reprendre</button>
+    </div>
+    <div style="display:flex;gap:6px;background:#fff;border:1px solid #EAE2D6;border-radius:999px;padding:5px;align-self:flex-start;max-width:100%;overflow-x:auto;">
+      <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="3">
+        <button onClick="{{ t.onClick }}" style="flex:none;border:0;background:{{ t.bg }};color:{{ t.color }};font-weight:700;font-size:14px;padding:10px 16px;border-radius:999px;cursor:pointer;display:flex;gap:8px;align-items:center;">{{ t.label }}<span style="background:{{ t.countBg }};color:#142422;font-size:12px;padding:2px 8px;border-radius:999px;">{{ t.count }}</span></button>
+      </sc-for>
+    </div>
+    <sc-if value="{{ isTabList }}" hint-placeholder-val="{{ true }}">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;">
+        <sc-for list="{{ myList }}" as="c" hint-placeholder-count="2">
+          <div style="background:#fff;border:1px solid #EAE2D6;border-radius:22px;padding:16px;display:flex;gap:14px;flex-direction:column;">
+            <div style="display:flex;gap:14px;align-items:center;">
+              <span style="width:56px;height:56px;border-radius:16px;background:{{ c.bg }};color:{{ c.fg }};display:grid;place-items:center;font-size:22px;flex:none;"><i class="{{ c.icon }}"></i></span>
+              <div style="min-width:0;"><div style="font-size:15px;font-weight:700;color:#142422;line-height:1.35;">{{ c.title }}</div><div style="font-size:13px;color:#5B6B68;margin-top:3px;">{{ c.last }}</div></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;"><div style="flex:1;height:8px;border-radius:9px;background:#EFE7DA;overflow:hidden;"><div style="width:{{ c.bar }};height:100%;background:{{ c.barColor }};border-radius:9px;"></div></div><span style="font-size:13px;font-weight:700;">{{ c.pctLabel }}</span></div>
+            <button onClick="{{ c.resume }}" style="border:1px solid #E3DACB;background:#fff;color:#0F3D3A;font-weight:700;font-size:14px;padding:12px;border-radius:12px;cursor:pointer;">{{ c.action }}</button>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+    <sc-if value="{{ isTabCerts }}" hint-placeholder-val="{{ false }}">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;">
+        <div style="background:#fff;border:1px solid #EAE2D6;border-radius:22px;padding:16px;display:flex;flex-direction:column;gap:14px;">
+          <div style="aspect-ratio:1.414;border-radius:14px;background:#F2E6D6;border:6px solid #0F3D3A;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;padding:14px;">
+            <i class="fa-solid fa-award" style="font-size:26px;color:#E0745E;"></i>
+            <span style="font-size:11px;font-weight:700;letter-spacing:.14em;color:#0F3D3A;">CERTIFICAT DE RÉUSSITE</span>
+            <span style="font-size:18px;font-weight:800;color:#0F3D3A;">Aïssatou Diallo</span>
+            <span style="font-size:12px;color:#3D4F4C;">Bases de données SQL en pratique</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;color:#5B6B68;gap:8px;"><span>Émis le 14/10/2026</span><span style="font-family:'JetBrains Mono',monospace;">DZL-7K2F-91QA</span></div>
+          <div style="display:flex;gap:8px;"><button style="flex:1;border:0;background:#0F3D3A;color:#fff;font-weight:700;font-size:14px;padding:12px;border-radius:12px;cursor:pointer;"><i class="fa-solid fa-download"></i> PDF</button><button style="flex:1;border:1px solid #E3DACB;background:#fff;color:#0F3D3A;font-weight:700;font-size:14px;padding:12px;border-radius:12px;cursor:pointer;"><i class="fa-solid fa-link"></i> Partager</button></div>
+        </div>
+        <div style="background:#fff;border:1px solid #EAE2D6;border-radius:22px;padding:16px;display:flex;flex-direction:column;gap:14px;">
+          <div style="aspect-ratio:1.414;border-radius:14px;background:#F2E6D6;border:6px solid #0F3D3A;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;padding:14px;">
+            <i class="fa-solid fa-award" style="font-size:26px;color:#E0745E;"></i>
+            <span style="font-size:11px;font-weight:700;letter-spacing:.14em;color:#0F3D3A;">CERTIFICAT DE RÉUSSITE</span>
+            <span style="font-size:18px;font-weight:800;color:#0F3D3A;">Aïssatou Diallo</span>
+            <span style="font-size:12px;color:#3D4F4C;">Linux et Bash pour développeurs</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;color:#5B6B68;gap:8px;"><span>Émis le 02/09/2026</span><span style="font-family:'JetBrains Mono',monospace;">DZL-3PX8-LM04</span></div>
+          <div style="display:flex;gap:8px;"><button style="flex:1;border:0;background:#0F3D3A;color:#fff;font-weight:700;font-size:14px;padding:12px;border-radius:12px;cursor:pointer;"><i class="fa-solid fa-download"></i> PDF</button><button style="flex:1;border:1px solid #E3DACB;background:#fff;color:#0F3D3A;font-weight:700;font-size:14px;padding:12px;border-radius:12px;cursor:pointer;"><i class="fa-solid fa-link"></i> Partager</button></div>
+        </div>
+      </div>
+    </sc-if>
+  </main>
+</sc-if>
+
+<sc-if value="{{ notPlayer }}" hint-placeholder-val="{{ true }}">
+  <footer style="border-top:1px solid #EAE2D6;background:#F2E6D6;">
+    <div style="max-width:1200px;margin:0 auto;padding:40px 20px;display:flex;flex-wrap:wrap;gap:32px;justify-content:space-between;">
+      <div style="flex:1 1 260px;max-width:340px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;"><span style="width:34px;height:34px;border-radius:10px;background:#0F3D3A;color:#F4B13B;display:grid;place-items:center;"><i class="fa-solid fa-graduation-cap"></i></span><strong style="font-size:17px;color:#0F3D3A;">Doztra-Learn</strong></div>
+        <p style="margin:0;font-size:14px;line-height:1.6;color:#3D4F4C;">Des cours de numérique clairs et complets, conçus à Conakry.</p>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:40px;font-size:14px;">
+        <div style="display:flex;flex-direction:column;gap:10px;"><strong style="color:#142422;">Plateforme</strong><a href="#">Catalogue</a><a href="#">Vérifier un certificat</a><a href="#">À propos du formateur</a></div>
+        <div style="display:flex;flex-direction:column;gap:10px;"><strong style="color:#142422;">Aide</strong><a href="#">Paiement Mobile Money</a><a href="#">Confidentialité</a><a href="#">Contact</a></div>
+      </div>
+    </div>
+    <div style="max-width:1200px;margin:0 auto;padding:16px 20px 28px;font-size:13px;color:#5B6B68;border-top:1px solid #E3D6C2;">© 2026 Doztra SARL · Tous droits réservés</div>
+  </footer>
+</sc-if>
+
+<sc-if value="{{ payOpen }}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;inset:0;z-index:80;background:rgba(10,44,42,.55);display:flex;align-items:flex-end;justify-content:center;padding:0;">
+    <div role="dialog" aria-label="Paiement" style="background:#fff;width:100%;max-width:520px;max-height:92vh;overflow:auto;border-radius:26px 26px 0 0;padding:24px clamp(18px,4vw,28px) 28px;margin:0 auto;align-self:center;border-radius:26px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <h2 style="margin:0;font-size:22px;color:#0F3D3A;">Paiement sécurisé</h2>
+        <button onClick="{{ closePay }}" aria-label="Fermer" style="width:40px;height:40px;border-radius:50%;border:1px solid #EAE2D6;background:#fff;cursor:pointer;color:#142422;"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <sc-if value="{{ payForm }}" hint-placeholder-val="{{ true }}">
+        <form onSubmit="{{ submitPay }}" style="display:flex;flex-direction:column;gap:16px;">
+          <div style="display:flex;gap:12px;align-items:center;background:#FBF8F3;border-radius:16px;padding:12px;">
+            <span style="width:48px;height:48px;border-radius:14px;background:{{ course.bg }};color:{{ course.fg }};display:grid;place-items:center;font-size:18px;flex:none;"><i class="{{ course.icon }}"></i></span>
+            <span style="font-weight:700;font-size:15px;color:#142422;line-height:1.35;">{{ course.title }}</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <sc-for list="{{ methods }}" as="m" hint-placeholder-count="3">
+              <button type="button" onClick="{{ m.onClick }}" style="display:flex;gap:14px;align-items:center;text-align:left;border:1.5px solid {{ m.border }};background:{{ m.bg }};border-radius:14px;padding:13px 14px;cursor:pointer;">
+                <span style="width:40px;height:40px;border-radius:12px;background:{{ m.tint }};color:{{ m.ic }};display:grid;place-items:center;flex:none;"><i class="{{ m.icon }}"></i></span>
+                <span style="flex:1;"><span style="display:block;font-weight:700;font-size:15px;color:#142422;">{{ m.label }}</span><span style="font-size:13px;color:#5B6B68;">{{ m.sub }}</span></span>
+                <i class="{{ m.radio }}" style="color:{{ m.radioColor }};font-size:18px;"></i>
+              </button>
+            </sc-for>
+          </div>
+          <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ true }}">
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:700;color:#3D4F4C;"><span>Numéro {{ methodLabel }}</span><input type="tel" placeholder="+224 6XX XX XX XX" style="border:1px solid #E3DACB;background:#FBF8F3;border-radius:12px;padding:14px;font-size:16px;"/></label>
+          </sc-if>
+          <sc-if value="{{ isCard }}" hint-placeholder-val="{{ false }}">
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:700;color:#3D4F4C;">Numéro de carte<input inputmode="numeric" placeholder="1234 5678 9012 3456" style="border:1px solid #E3DACB;background:#FBF8F3;border-radius:12px;padding:14px;font-size:16px;"/></label>
+          </sc-if>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <span style="font-size:13px;font-weight:700;color:#3D4F4C;">Code promo</span>
+            <div style="display:flex;gap:8px;"><input value="{{ coupon }}" onChange="{{ setCoupon }}" placeholder="DOZTRA20" style="flex:1;min-width:0;border:1px solid #E3DACB;background:#FBF8F3;border-radius:12px;padding:13px 14px;font-size:16px;text-transform:uppercase;"/><button type="button" onClick="{{ applyCoupon }}" style="border:1px solid #0F3D3A;background:#fff;color:#0F3D3A;font-weight:700;padding:0 16px;border-radius:12px;cursor:pointer;">Appliquer</button></div>
+            <sc-if value="{{ couponGood }}"><span style="font-size:13px;color:#1F7A5C;font-weight:600;"><i class="fa-solid fa-circle-check"></i> Coupon appliqué : −20 %</span></sc-if>
+            <sc-if value="{{ couponBad }}"><span style="font-size:13px;color:#B9533F;font-weight:600;"><i class="fa-solid fa-circle-exclamation"></i> Ce coupon est expiré ou ne s'applique pas à ce cours.</span></sc-if>
+          </div>
+          <div style="border-top:1px solid #EFE7DA;padding-top:14px;display:flex;flex-direction:column;gap:8px;font-size:15px;">
+            <div style="display:flex;justify-content:space-between;color:#3D4F4C;"><span>Prix du cours</span><span>{{ subtotalLabel }}</span></div>
+            <sc-if value="{{ couponGood }}"><div style="display:flex;justify-content:space-between;color:#1F7A5C;"><span>Réduction</span><span>{{ discountLabel }}</span></div></sc-if>
+            <div style="display:flex;justify-content:space-between;font-weight:800;font-size:18px;color:#0F3D3A;"><span>Total</span><span>{{ totalLabel }}</span></div>
+          </div>
+          <button type="submit" style="border:0;background:#0F3D3A;color:#fff;font-weight:700;font-size:16px;padding:16px;border-radius:14px;cursor:pointer;">Payer {{ totalLabel }}</button>
+          <p style="margin:0;font-size:12px;color:#5B6B68;text-align:center;line-height:1.5;"><i class="fa-solid fa-lock"></i> L'accès s'ouvre dès la confirmation de l'opérateur. Un reçu PDF vous est envoyé par e-mail.</p>
+        </form>
+      </sc-if>
+      <sc-if value="{{ payPending }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px;padding:24px 0 8px;">
+          {{ spinner }}
+          <h3 style="margin:6px 0 0;font-size:20px;color:#0F3D3A;">Validez sur votre téléphone</h3>
+          <p style="margin:0;color:#5B6B68;font-size:15px;line-height:1.6;max-width:340px;">Composez votre code secret {{ methodLabel }} pour confirmer le paiement de {{ totalLabel }}. Nous attendons la confirmation de l'opérateur.</p>
+        </div>
+      </sc-if>
+      <sc-if value="{{ payDone }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px;padding:16px 0 4px;">
+          <span style="width:64px;height:64px;border-radius:50%;background:#E6F3EE;color:#1F7A5C;display:grid;place-items:center;font-size:28px;"><i class="fa-solid fa-circle-check"></i></span>
+          <h3 style="margin:0;font-size:22px;color:#0F3D3A;">Paiement confirmé</h3>
+          <p style="margin:0;color:#5B6B68;font-size:15px;line-height:1.6;max-width:340px;">Votre accès est ouvert. Le reçu a été envoyé à votre adresse e-mail.</p>
+          <button onClick="{{ startCourse }}" style="width:100%;border:0;background:#0F3D3A;color:#fff;font-weight:700;font-size:16px;padding:16px;border-radius:14px;cursor:pointer;margin-top:6px;">Commencer le cours</button>
+        </div>
+      </sc-if>
+    </div>
+  </div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;startScreen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Accueil&quot;,&quot;Catalogue&quot;,&quot;Fiche cours&quot;,&quot;Connexion&quot;,&quot;Lecteur de cours&quot;,&quot;Mes cours&quot;],&quot;default&quot;:&quot;Accueil&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+const COURSES = [
+  { id: 'js', title: "JavaScript moderne : de zéro à l'autonomie", cat: 'Développement web', level: 'Débutant', price: 250000, old: 350000, rating: '4,8', reviews: 312, lessons: 42, hours: '12 h', bg: '#0F3D3A', fg: '#F4B13B', icon: 'fa-solid fa-code', sub: 'Variables, fonctions, DOM et projets concrets pour écrire du JavaScript propre et sûr.' },
+  { id: 'nest', title: 'API REST avec NestJS et PostgreSQL', cat: 'Back-end', level: 'Intermédiaire', price: 450000, rating: '4,9', reviews: 128, lessons: 56, hours: '18 h', bg: '#E0745E', fg: '#FFFFFF', icon: 'fa-solid fa-server', sub: 'Concevez, sécurisez et déployez une API professionnelle de bout en bout.' },
+  { id: 'py', title: "Python pour l'analyse de données", cat: 'Data', level: 'Débutant', price: 0, rating: '4,7', reviews: 540, lessons: 30, hours: '8 h', bg: '#F4B13B', fg: '#0F3D3A', icon: 'fa-solid fa-chart-simple', sub: 'Pandas, graphiques et nettoyage de données sur des jeux réels.' },
+  { id: 'sql', title: 'Bases de données SQL en pratique', cat: 'Data', level: 'Intermédiaire', price: 200000, rating: '4,6', reviews: 201, lessons: 34, hours: '10 h', bg: '#F2E6D6', fg: '#0F3D3A', icon: 'fa-solid fa-database', sub: 'Requêtes, jointures, index et modélisation avec PostgreSQL.' },
+  { id: 'flutter', title: 'Flutter : votre première application mobile', cat: 'Mobile', level: 'Débutant', price: 300000, old: 400000, rating: '4,7', reviews: 96, lessons: 38, hours: '11 h', bg: '#E0745E', fg: '#FFFFFF', icon: 'fa-solid fa-mobile-screen', sub: 'Créez et publiez une application Android et iOS avec Dart.' },
+  { id: 'bash', title: 'Linux et Bash pour développeurs', cat: 'DevOps', level: 'Débutant', price: 0, rating: '4,8', reviews: 410, lessons: 24, hours: '6 h', bg: '#0F3D3A', fg: '#F2E6D6', icon: 'fa-solid fa-terminal', sub: 'Le terminal sans peur : fichiers, droits, scripts et SSH.' },
+  { id: 'docker', title: 'Docker et déploiement en production', cat: 'DevOps', level: 'Avancé', price: 400000, rating: '4,9', reviews: 74, lessons: 40, hours: '14 h', bg: '#F2E6D6', fg: '#B9533F', icon: 'fa-solid fa-cube', sub: 'Conteneurs, Compose, Nginx et CI pour livrer en toute confiance.' },
+  { id: 'ts', title: 'TypeScript avancé', cat: 'Développement web', level: 'Avancé', price: 350000, rating: '4,8', reviews: 88, lessons: 32, hours: '9 h', bg: '#F4B13B', fg: '#0F3D3A', icon: 'fa-solid fa-layer-group', sub: 'Génériques, types conditionnels et architecture typée.' }
+];
+const CATS = [
+  { name: 'Développement web', icon: 'fa-solid fa-code', bg: '#E3ECEA', fg: '#0F3D3A' },
+  { name: 'Back-end', icon: 'fa-solid fa-server', bg: '#FBE6E1', fg: '#B9533F' },
+  { name: 'Data', icon: 'fa-solid fa-chart-simple', bg: '#FDF1DA', fg: '#7A4E00' },
+  { name: 'Mobile', icon: 'fa-solid fa-mobile-screen', bg: '#FBE6E1', fg: '#B9533F' },
+  { name: 'DevOps', icon: 'fa-solid fa-terminal', bg: '#E3ECEA', fg: '#0F3D3A' },
+  { name: 'Design', icon: 'fa-regular fa-image', bg: '#FDF1DA', fg: '#7A4E00' }
+];
+const PROGRAM = [
+  { title: 'Prise en main', lessons: [
+    { id: 'l1', title: 'Bienvenue dans le cours', type: 'video', dur: '4:12', preview: true },
+    { id: 'l2', title: 'Installer Node.js et VS Code', type: 'text', dur: '6 min', preview: true },
+    { id: 'l3', title: 'Variables et types', type: 'text', dur: '9 min' }] },
+  { title: 'Les fondamentaux', lessons: [
+    { id: 'l4', title: 'Fonctions et portée', type: 'video', dur: '14:30' },
+    { id: 'l5', title: 'Fiche mémo : syntaxe ES2024', type: 'pdf', dur: '12 pages' },
+    { id: 'l6', title: 'Quiz : les fondamentaux', type: 'quiz', dur: '5 questions' }] },
+  { title: 'Le DOM et les événements', lessons: [
+    { id: 'l7', title: 'Sélectionner des éléments', type: 'video', dur: '12:05' },
+    { id: 'l8', title: 'Projet : une liste de tâches', type: 'text', dur: '18 min' },
+    { id: 'l9', title: 'Quiz final', type: 'quiz', dur: '10 questions' }] }
+];
+const ICON = { video: 'fa-solid fa-circle-play', text: 'fa-regular fa-file-lines', pdf: 'fa-regular fa-file-pdf', quiz: 'fa-solid fa-list-check' };
+const TOK = { kw: '#F4B13B', id: '#E8F1EE', p: '#9FB8B3', st: '#F5A894', nu: '#8FD6C2', fn: '#F7D58B', cm: '#7E9994' };
+const CODE = [
+  [['// Déclarer une constante et une variable', 'cm']],
+  [['const ', 'kw'], ['prenom', 'id'], [' = ', 'p'], ['"Aïssatou"', 'st'], [';', 'p']],
+  [['let ', 'kw'], ['age', 'id'], [' = ', 'p'], ['24', 'nu'], [';', 'p']],
+  [[' ', 'p']],
+  [['age', 'id'], [' = ', 'p'], ['age', 'id'], [' + ', 'p'], ['1', 'nu'], [';', 'p'], ['  // réassignation autorisée', 'cm']],
+  [['console', 'id'], ['.', 'p'], ['log', 'fn'], ['(', 'p'], ['`${prenom} a ${age} ans`', 'st'], [');', 'p']],
+  [[' ', 'p']],
+  [['prenom', 'id'], [' = ', 'p'], ['"Mariama"', 'st'], [';', 'p'], ['  // TypeError', 'cm']]
+];
+const QUIZ = [
+  { k: 'a', t: 'x vaut 6' },
+  { k: 'b', t: 'Une TypeError est levée' },
+  { k: 'c', t: 'x vaut toujours 5, sans erreur' },
+  { k: 'd', t: 'undefined s\'affiche dans la console' }
+];
+const norm = s => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+const fmt = n => n === 0 ? 'Gratuit' : n.toLocaleString('fr-FR').replace(/[\u202f\u00a0]/g, ' ') + ' GNF';
+const START = { 'Accueil': 'home', 'Catalogue': 'catalog', 'Fiche cours': 'course', 'Connexion': 'auth', 'Lecteur de cours': 'player', 'Mes cours': 'mine' };
+
+class Component extends DCLogic {
+  state = { screen: null, wide: true, menu: false, logged: false, cat: 'Tous', level: 'Tous', price: 'Tous', q: '', courseId: 'js', auth: 'login', showPw: false, lesson: 'l3', done: { l1: 1, l2: 1 }, quizPick: null, quizSent: false, copied: false, pay: null, method: 'om', coupon: '', couponOk: null, tab: 'progress', favs: {}, focus: false };
+  componentDidMount() {
+    this.onR = () => this.setState({ wide: window.innerWidth >= 960 });
+    this.onR();
+    window.addEventListener('resize', this.onR);
+  }
+  componentWillUnmount() { window.removeEventListener('resize', this.onR); clearTimeout(this.t); }
+  go(screen, extra) { this.setState({ screen, menu: false, ...(extra || {}) }); window.scrollTo(0, 0); }
+  renderVals() {
+    const s = this.state;
+    const screen = s.screen || START[this.props.startScreen] || 'home';
+    const g = (k, x) => () => this.go(k, x);
+    const mk = c => ({ ...c, priceLabel: fmt(c.price), oldLabel: c.old ? fmt(c.old) : '', hasOld: !!c.old, isFree: c.price === 0,
+      favIcon: s.favs[c.id] ? 'fa-solid fa-heart' : 'fa-regular fa-heart',
+      open: () => this.go('course', { courseId: c.id }),
+      toggleFav: e => { e.stopPropagation(); this.setState(st => ({ favs: { ...st.favs, [c.id]: !st.favs[c.id] } })); } });
+    const all = COURSES.map(mk);
+    const q = norm(s.q).trim();
+    const filtered = all.filter(c => (s.cat === 'Tous' || c.cat === s.cat) && (s.level === 'Tous' || c.level === s.level) &&
+      (s.price === 'Tous' || (s.price === 'Gratuit' ? c.price === 0 : c.price > 0)) && (!q || norm(c.title + ' ' + c.cat + ' ' + c.sub).includes(q)));
+    const chip = (key, val) => { const on = s[key] === val; return { label: val, onClick: () => this.setState({ [key]: val }), bg: on ? '#0F3D3A' : '#fff', color: on ? '#fff' : '#142422', border: on ? '#0F3D3A' : '#E3DACB' }; };
+    const course = all.find(c => c.id === s.courseId) || all[0];
+    const navDef = [['Accueil', 'home'], ['Catalogue', 'catalog'], ['Mes cours', 'mine']];
+    const navItems = navDef.map(([label, k]) => ({ label, onClick: g(k), bg: screen === k ? '#0F3D3A' : 'transparent', color: screen === k ? '#fff' : '#142422' }));
+
+    const flat = PROGRAM.flatMap(sec => sec.lessons);
+    const cur = flat.find(l => l.id === s.lesson) || flat[2];
+    const idx = flat.indexOf(cur);
+    const doneCount = flat.filter(l => s.done[l.id]).length;
+    const pct = Math.round(doneCount / flat.length * 100);
+    const playerSections = PROGRAM.map((sec, i) => ({ title: sec.title, meta: `Section ${i + 1} · ${sec.lessons.filter(l => s.done[l.id]).length}/${sec.lessons.length}`,
+      lessons: sec.lessons.map(l => { const on = l.id === cur.id, d = !!s.done[l.id];
+        return { ...l, icon: ICON[l.type], onClick: () => { this.setState({ lesson: l.id, quizPick: null, quizSent: false }); window.scrollTo(0, 0); },
+          bg: on ? '#E3ECEA' : 'transparent', titleColor: on ? '#0F3D3A' : '#142422', weight: on ? '700' : '500',
+          stIcon: d ? 'fa-solid fa-circle-check' : (on ? 'fa-solid fa-circle-dot' : 'fa-regular fa-circle'), stColor: d ? '#1F7A5C' : (on ? '#E0745E' : '#B5BFBC') }; }) }));
+    const detailSections = PROGRAM.map((sec, i) => ({ title: `${i + 1}. ${sec.title}`, meta: `${sec.lessons.length} leçons`,
+      lessons: sec.lessons.map(l => ({ ...l, icon: ICON[l.type], open: l.preview ? () => this.go('player', { lesson: l.id }) : () => {}, rightIcon: l.preview ? 'fa-regular fa-eye' : 'fa-solid fa-lock', rightLabel: l.preview ? 'Aperçu' : '', rightColor: l.preview ? '#B9533F' : '#9AA6A3', cursor: l.preview ? 'pointer' : 'default' })) }));
+    const next = flat[idx + 1], prev = flat[idx - 1];
+
+    const couponPct = s.couponOk ? 20 : 0;
+    const total = Math.round(course.price * (100 - couponPct) / 100);
+    const methods = [
+      { id: 'om', label: 'Orange Money', sub: 'Validation sur votre téléphone', icon: 'fa-solid fa-mobile-screen-button', tint: '#FDF1DA', ic: '#7A4E00' },
+      { id: 'momo', label: 'MTN MoMo', sub: 'Validation sur votre téléphone', icon: 'fa-solid fa-mobile-screen-button', tint: '#FDF1DA', ic: '#7A4E00' },
+      { id: 'card', label: 'Carte bancaire', sub: 'Visa, Mastercard', icon: 'fa-regular fa-credit-card', tint: '#E3ECEA', ic: '#0F3D3A' }
+    ].map(m => ({ ...m, onClick: () => this.setState({ method: m.id }), border: s.method === m.id ? '#0F3D3A' : '#E3DACB', bg: s.method === m.id ? '#F4F8F7' : '#fff', radio: s.method === m.id ? 'fa-solid fa-circle-dot' : 'fa-regular fa-circle', radioColor: s.method === m.id ? '#0F3D3A' : '#B5BFBC' }));
+
+    const quizOpts = QUIZ.map(o => { const picked = s.quizPick === o.k; const right = o.k === 'b';
+      let border = picked ? '#0F3D3A' : '#E3DACB', bg = picked ? '#F4F8F7' : '#fff', icon = picked ? 'fa-solid fa-circle-dot' : 'fa-regular fa-circle', ic = picked ? '#0F3D3A' : '#B5BFBC';
+      if (s.quizSent && right) { border = '#1F7A5C'; bg = '#E6F3EE'; icon = 'fa-solid fa-circle-check'; ic = '#1F7A5C'; }
+      else if (s.quizSent && picked) { border = '#E0745E'; bg = '#FBE6E1'; icon = 'fa-solid fa-circle-xmark'; ic = '#B9533F'; }
+      return { ...o, letter: o.k.toUpperCase(), border, bg, icon, ic, onClick: () => !s.quizSent && this.setState({ quizPick: o.k }) }; });
+    const quizRight = s.quizSent && s.quizPick === 'b';
+
+    const enrolled = [
+      { c: all[0], pct, last: cur.title, status: 'progress' },
+      { c: all[2], pct: 64, last: 'Nettoyer un jeu de données', status: 'progress' },
+      { c: all[3], pct: 100, last: 'Terminé le 14/10/2026', status: 'done' },
+      { c: all[5], pct: 100, last: 'Terminé le 02/09/2026', status: 'done' }
+    ].map(e => ({ ...e.c, pct: e.pct, pctLabel: e.pct + ' %', bar: e.pct + '%', last: e.last, status: e.status, barColor: e.pct === 100 ? '#1F7A5C' : '#E0745E', action: e.pct === 100 ? 'Revoir' : 'Reprendre', resume: () => this.go('player') }));
+    const tabs = [['progress', 'En cours'], ['done', 'Terminés'], ['certs', 'Certificats']].map(([k, l]) => ({ label: l, count: k === 'certs' ? 2 : enrolled.filter(e => e.status === k).length, onClick: () => this.setState({ tab: k }), bg: s.tab === k ? '#0F3D3A' : 'transparent', color: s.tab === k ? '#fff' : '#142422', countBg: s.tab === k ? '#F4B13B' : '#EFE7DA' }));
+
+    return {
+      logged: s.logged, notLogged: !s.logged, showAuthBtns: !s.logged && s.wide, navDisplay: s.wide ? 'flex' : 'none', burgerDisplay: s.wide ? 'none' : 'flex',
+      menuOpen: s.menu && !s.wide, menuIcon: s.menu ? 'fa-solid fa-xmark' : 'fa-solid fa-bars', toggleMenu: () => this.setState({ menu: !s.menu }), navItems,
+      isHome: screen === 'home', isCatalog: screen === 'catalog', isCourse: screen === 'course', isAuth: screen === 'auth', isPlayer: screen === 'player', isMine: screen === 'mine', notPlayer: screen !== 'player',
+      goHome: g('home'), goCatalog: g('catalog'), goMine: g(s.logged ? 'mine' : 'mine'), goPlayer: g('player'), goLogin: g('auth', { auth: 'login' }), goRegister: g('auth', { auth: 'register' }),
+      goFree: g('catalog', { price: 'Gratuit', cat: 'Tous', level: 'Tous' }),
+      q: s.q, setQ: e => this.setState({ q: e.target.value }), clearQ: () => this.setState({ q: '' }), hasQ: !!s.q,
+      heroSearch: e => { e.preventDefault(); this.go('catalog', { cat: 'Tous', level: 'Tous', price: 'Tous' }); },
+      categories: CATS.map(k => ({ ...k, count: COURSES.filter(c => c.cat === k.name).length || 3, onClick: () => this.go('catalog', { cat: k.name, level: 'Tous', price: 'Tous' }) })),
+      featured: all.slice(0, 4),
+      features: [
+        { icon: 'fa-solid fa-circle-play', title: 'Vidéo adaptative', text: 'Lecture fluide en 360p, 720p ou 1080p selon votre connexion, avec reprise là où vous vous êtes arrêté.' },
+        { icon: 'fa-solid fa-code', title: 'Code coloré', text: 'Des blocs de code lisibles, numérotés et copiables en un clic, dans plus de 15 langages.' },
+        { icon: 'fa-regular fa-file-pdf', title: 'Supports PDF', text: 'Fiches et supports consultables en ligne, téléchargeables quand le formateur l\'autorise.' },
+        { icon: 'fa-solid fa-award', title: 'Certificat vérifiable', text: 'Un certificat PDF avec code unique et QR code à la fin de chaque cours.' }
+      ],
+      catChips: ['Tous', ...CATS.map(c => c.name)].map(v => chip('cat', v)), levelChips: ['Tous', 'Débutant', 'Intermédiaire', 'Avancé'].map(v => chip('level', v)), priceChips: ['Tous', 'Gratuit', 'Payant'].map(v => chip('price', v)),
+      results: filtered, resultCount: filtered.length + (filtered.length > 1 ? ' cours' : ' cours'), noResults: filtered.length === 0,
+      resetFilters: () => this.setState({ cat: 'Tous', level: 'Tous', price: 'Tous', q: '' }),
+      course, detailSections, related: all.filter(c => c.id !== course.id && c.cat === course.cat).concat(all.filter(c => c.cat !== course.cat)).slice(0, 3),
+      ctaLabel: course.isFree ? "S'inscrire gratuitement" : 'Acheter le cours', buy: () => course.isFree ? this.go('player', { lesson: 'l1' }) : this.setState({ pay: 'form', coupon: '', couponOk: null }),
+      startPreview: g('player', { lesson: 'l1' }),
+      isLogin: s.auth === 'login', isRegister: s.auth === 'register', toLogin: () => this.setState({ auth: 'login' }), toRegister: () => this.setState({ auth: 'register' }),
+      pwType: s.showPw ? 'text' : 'password', pwIcon: s.showPw ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye', togglePw: () => this.setState({ showPw: !s.showPw }),
+      submitAuth: e => { e.preventDefault(); this.go('mine', { logged: true }); },
+      playerSections, pct, pctLabel: pct + ' %', pctBar: pct + '%', doneCount, totalLessons: flat.length,
+      cur: { ...cur, icon: ICON[cur.type], typeLabel: { video: 'Vidéo', text: 'Leçon textuelle', pdf: 'Document PDF', quiz: 'Quiz' }[cur.type], section: PROGRAM.find(sec => sec.lessons.includes(cur)).title, isDone: !!s.done[cur.id] },
+      isText: cur.type === 'text', isVideo: cur.type === 'video', isPdf: cur.type === 'pdf', isQuiz: cur.type === 'quiz',
+      doneLabel: s.done[cur.id] ? 'Leçon terminée' : 'Marquer comme terminée', doneIcon: s.done[cur.id] ? 'fa-solid fa-circle-check' : 'fa-regular fa-circle-check', doneBg: s.done[cur.id] ? '#E6F3EE' : '#0F3D3A', doneColor: s.done[cur.id] ? '#1F7A5C' : '#fff',
+      markDone: () => { this.setState(st => ({ done: { ...st.done, [cur.id]: 1 }, lesson: next && !st.done[cur.id] ? next.id : st.lesson, quizPick: null, quizSent: false })); window.scrollTo(0, 0); },
+      hasNext: !!next, hasPrev: !!prev, nextTitle: next ? next.title : '', prevTitle: prev ? prev.title : '',
+      goNext: () => next && (this.setState({ lesson: next.id, quizPick: null, quizSent: false }), window.scrollTo(0, 0)), goPrev: () => prev && (this.setState({ lesson: prev.id, quizPick: null, quizSent: false }), window.scrollTo(0, 0)),
+      sidebarDisplay: s.focus ? 'none' : 'flex', focusLabel: s.focus ? 'Afficher le programme' : 'Mode concentration', focusIcon: s.focus ? 'fa-solid fa-list' : 'fa-solid fa-expand', toggleFocus: () => this.setState({ focus: !s.focus }),
+      codeLines: CODE.map((line, i) => ({ n: i + 1, hl: i === 4 ? 'rgba(244,177,59,.14)' : 'transparent', bar: i === 4 ? '#F4B13B' : 'transparent', toks: line.map(([t, k]) => ({ t, c: TOK[k], st: k === 'cm' ? 'italic' : 'normal' })) })),
+      copyLabel: s.copied ? 'Copié' : 'Copier', copyIcon: s.copied ? 'fa-solid fa-check' : 'fa-regular fa-copy',
+      copyCode: () => { try { navigator.clipboard.writeText(CODE.map(l => l.map(t => t[0]).join('')).join('\n')); } catch (e) {} this.setState({ copied: true }); clearTimeout(this.t); this.t = setTimeout(() => this.setState({ copied: false }), 1600); },
+      quizOpts, canSubmitQuiz: !!s.quizPick && !s.quizSent, quizSent: s.quizSent, quizRight, quizWrong: s.quizSent && !quizRight,
+      submitQuiz: () => s.quizPick && this.setState(st => ({ quizSent: true, done: st.quizPick === 'b' ? { ...st.done, [cur.id]: 1 } : st.done })),
+      retryQuiz: () => this.setState({ quizPick: null, quizSent: false }),
+      payOpen: !!s.pay, payForm: s.pay === 'form', payPending: s.pay === 'pending', payDone: s.pay === 'done', closePay: () => this.setState({ pay: null }),
+      methods, isCard: s.method === 'card', isMobile: s.method !== 'card', methodLabel: methods.find(m => m.id === s.method).label,
+      coupon: s.coupon, setCoupon: e => this.setState({ coupon: e.target.value.toUpperCase(), couponOk: null }),
+      applyCoupon: () => this.setState({ couponOk: s.coupon.trim() === 'DOZTRA20' }), couponGood: s.couponOk === true, couponBad: s.couponOk === false,
+      subtotalLabel: fmt(course.price), discountLabel: '− ' + fmt(course.price - total), totalLabel: fmt(total),
+      submitPay: e => { e.preventDefault(); this.setState({ pay: 'pending' }); clearTimeout(this.t); this.t = setTimeout(() => this.setState({ pay: 'done' }), 2600); },
+      startCourse: () => this.go('player', { pay: null, lesson: 'l1' }),
+      spinner: React.createElement('span', { style: { width: 54, height: 54, borderRadius: '50%', border: '4px solid #EFE7DA', borderTopColor: '#E0745E', display: 'block', animation: 'dzspin 0.9s linear infinite' } }),
+      tabs, isTabCerts: s.tab === 'certs', isTabList: s.tab !== 'certs', myList: enrolled.filter(e => e.status === s.tab), resume: g('player'), resumeTitle: cur.title, resumePct: pct + ' %', resumeBar: pct + '%'
+    };
+  }
+}
+
+</script>
+</body>
+</html>

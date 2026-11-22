@@ -1,0 +1,93 @@
+@import "tailwindcss";
+
+/*
+ * Jetons de design Doztra-Learn (source : .claude/skills/doztra-learn-ui/references/theme.css).
+ * Les polices viennent de next/font (layout.tsx) : --font-jakarta et --font-jetbrains.
+ */
+@theme {
+  --color-forest: #0f3d3a;
+  --color-forest-900: #0a2c2a;
+  --color-code-bg: #0b2725;
+  --color-gold: #f4b13b;
+  --color-gold-600: #e5a42e;
+  --color-terracotta: #e0745e;
+  --color-terracotta-700: #b9533f;
+  --color-sand: #f2e6d6;
+  --color-cream: #faf6f0;
+  --color-paper: #fbf8f3;
+  --color-linen: #f6f1ea;
+  --color-ink: #142422;
+  --color-ink-700: #3d4f4c;
+  --color-muted: #5b6b68;
+  --color-subtle: #8a9794;
+  --color-line: #eae2d6;
+  --color-line-admin: #e6ded2;
+  --color-line-strong: #e3dacb;
+  --color-mint: #e3ecea;
+  --color-mint-50: #e8f1ee;
+  --color-inline-code: #f3ede3;
+  --color-success: #1f7a5c;
+  --color-success-bg: #e6f3ee;
+  --color-success-dark: #14503c;
+  --color-warning: #7a4e00;
+  --color-warning-bg: #fdf1da;
+  --color-danger: #8a3a2a;
+  --color-danger-bg: #fbe6e1;
+
+  --font-sans: var(--font-jakarta), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+
+  --radius-sm: 9px;
+  --radius-base: 12px;
+  --radius-md: 14px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 22px;
+
+  --shadow-card: 0 18px 40px -24px rgb(15 61 58 / 0.45);
+  --shadow-lift: 0 20px 50px -34px rgb(15 61 58 / 0.5);
+
+  --container-site: 1200px;
+  --container-read: 720px;
+
+  --tracking-tight: -0.02em;
+}
+
+@layer base {
+  body {
+    @apply bg-cream font-sans text-ink antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-extrabold tracking-tight text-forest;
+  }
+
+  a {
+    @apply text-forest transition-colors hover:text-terracotta-700;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  /* Focus visible sur tout élément interactif (WCAG 2.1 AA). */
+  :focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 1px;
+  }
+}
+
+/* Thème Shiki « doztra-forest » : classes émises par le rendu serveur (pas d'attribut style, pour la CSP). */
+@layer components {
+  .dzl-tok-keyword { color: #f4b13b; }
+  .dzl-tok-ident { color: #e8f1ee; }
+  .dzl-tok-punct { color: #9fb8b3; }
+  .dzl-tok-number { color: #8fd6c2; }
+  .dzl-tok-string { color: #f5a894; }
+  .dzl-tok-fn { color: #f7d58b; }
+  .dzl-tok-comment { color: #7e9994; font-style: italic; }
+  .dzl-line-highlight { background: rgb(244 177 59 / 0.14); border-left-color: #f4b13b; }
+}

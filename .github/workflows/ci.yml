@@ -1,0 +1,92 @@
+# Intégration continue Doztra-Learn (phase 2 du plan).
+# Bloque la fusion si le lint, les types, les tests, le build, l'audit des dépendances ou le scan de secrets échouent.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verifier:
+    name: Lint, types, tests, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:18
+        # Identifiants jetables d'une base éphémère de CI (ce ne sont pas des secrets).
+        env:
+          POSTGRES_USER: doztra
+          POSTGRES_PASSWORD: doztra-ci
+          POSTGRES_DB: doztra_learn
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U doztra"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://doztra:doztra-ci@localhost:5432/doztra_learn?schema=public
+      APP_URL: http://localhost:3210
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Dépendances
+        run: npm ci
+
+      - name: Migrations (base de travail de la CI)
+        run: npm run db:migrate
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Types
+        run: npm run typecheck
+
+      - name: Tests unitaires (base doztra_learn_test créée et migrée automatiquement)
+        run: npm run test:coverage
+
+      - name: Audit des dépendances de production
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Navigateur pour les tests de bout en bout
+        run: npx playwright install --with-deps chromium
+
+      - name: Tests de bout en bout (build de production)
+        run: npm run test:e2e
+        env:
+          # Sur le poste de développement : Microsoft Edge ; en CI : Chromium de Playwright.
+          PLAYWRIGHT_CHANNEL: chromium
+
+      - name: Traces Playwright en cas d'échec
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: traces-playwright
+          path: test-results/
+          retention-days: 7
+
+  secrets:
+    name: Scan de secrets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

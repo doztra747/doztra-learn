@@ -1,0 +1,298 @@
+// Schéma Doztra-Learn — cahier des charges §7.
+// Phase 1 : comptes (structure), médias (structure), catégories, tags, cours, objectifs, sections, leçons.
+// Phase 2 : sessions et tentatives de connexion en PostgreSQL (décision du 22/11/2026 : pas de Redis pour l'instant).
+// Les autres tables du §7 arrivent avec leur phase (voir docs/plan-implementation.md).
+// Conventions : ids UUID v7 générés côté application, created_at / updated_at partout, deleted_at sur les contenus,
+// montants en BIGINT (GNF sans décimales), colonnes en snake_case.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  LEARNER
+  ASSISTANT
+  OWNER
+}
+
+enum UserStatus {
+  ACTIVE
+  BANNED
+}
+
+enum MediaKind {
+  VIDEO
+  PDF
+  IMAGE
+  RESOURCE
+  SUBTITLE
+}
+
+enum MediaStatus {
+  UPLOADING
+  QUEUED
+  PROCESSING
+  READY
+  FAILED
+}
+
+enum CourseStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  ARCHIVED
+}
+
+enum CourseLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum ObjectiveKind {
+  OBJECTIVE
+  PREREQUISITE
+}
+
+enum LessonType {
+  TEXT
+  VIDEO
+  PDF
+  QUIZ
+}
+
+model User {
+  id              String     @id @default(uuid(7)) @db.Uuid
+  /// RG-01 : unique, insensible à la casse.
+  email           String     @unique @db.Citext
+  passwordHash    String?    @map("password_hash")
+  firstName       String     @map("first_name") @db.VarChar(80)
+  lastName        String     @map("last_name") @db.VarChar(80)
+  avatarUrl       String?    @map("avatar_url")
+  bio             String?    @db.VarChar(1000)
+  phone           String?    @db.VarChar(32)
+  emailVerifiedAt DateTime?  @map("email_verified_at") @db.Timestamptz(3)
+  status          UserStatus @default(ACTIVE)
+  lastLoginAt     DateTime?  @map("last_login_at") @db.Timestamptz(3)
+  createdAt       DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  roles    UserRole[]
+  media    Media[]
+  sessions Session[]
+
+  @@map("users")
+}
+
+/// Session côté serveur. L'id est le SHA-256 du jeton du cookie : le jeton lui-même n'est jamais stocké.
+model Session {
+  id         String   @id @db.Char(64)
+  userId     String   @map("user_id") @db.Uuid
+  /// « Se souvenir de moi » : 30 jours au lieu de 7 (F-02).
+  remember   Boolean  @default(false)
+  expiresAt  DateTime @map("expires_at") @db.Timestamptz(3)
+  lastSeenAt DateTime @default(now()) @map("last_seen_at") @db.Timestamptz(3)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+enum LoginAttemptScope {
+  EMAIL
+  IP
+}
+
+/// RG-04 : échecs de connexion, comptés par e-mail ET par IP sur 15 minutes.
+/// La clé est un SHA-256 (ni e-mail ni IP en clair dans cette table).
+model LoginAttempt {
+  id        String            @id @default(uuid(7)) @db.Uuid
+  scope     LoginAttemptScope
+  keyHash   String            @map("key_hash") @db.Char(64)
+  createdAt DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([scope, keyHash, createdAt])
+  @@index([createdAt])
+  @@map("login_attempts")
+}
+
+/// RG-05 : un seul OWNER (index unique partiel user_roles_single_owner, défini dans la migration SQL).
+model UserRole {
+  userId    String   @map("user_id") @db.Uuid
+  role      Role
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, role])
+  @@map("user_roles")
+}
+
+model Media {
+  id           String      @id @default(uuid(7)) @db.Uuid
+  ownerId      String      @map("owner_id") @db.Uuid
+  kind         MediaKind
+  /// Clé générée par le serveur (<kind>/<uuid>/<variant>), jamais le nom fourni par le client.
+  storageKey   String      @unique @map("storage_key")
+  originalName String      @map("original_name") @db.VarChar(255)
+  mimeType     String      @map("mime_type") @db.VarChar(100)
+  sizeBytes    BigInt      @map("size_bytes")
+  checksum     String?     @db.VarChar(128)
+  status       MediaStatus @default(UPLOADING)
+  errorMessage String?     @map("error_message") @db.VarChar(500)
+  createdAt    DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime    @updatedAt @map("updated_at") @db.Timestamptz(3)
+  /// RG-22 : corbeille de 30 jours.
+  deletedAt    DateTime?   @map("deleted_at") @db.Timestamptz(3)
+
+  owner          User     @relation(fields: [ownerId], references: [id])
+  coverOfCourses Course[] @relation("CourseCover")
+  trailerOf      Course[] @relation("CourseTrailer")
+
+  @@index([ownerId])
+  @@map("media")
+}
+
+/// F-95 : arborescence à 2 niveaux (le niveau est contrôlé par le service).
+model Category {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  parentId  String?  @map("parent_id") @db.Uuid
+  name      String   @db.VarChar(80)
+  slug      String   @unique @db.VarChar(100)
+  /// Classe Font Awesome Classic issue de la liste blanche (src/shared/categories.ts).
+  icon      String   @db.VarChar(60)
+  position  Int
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: Restrict)
+  children Category[] @relation("CategoryTree")
+  courses  Course[]
+
+  @@index([parentId, position])
+  @@map("categories")
+}
+
+model Tag {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  name      String   @db.VarChar(60)
+  slug      String   @unique @db.VarChar(80)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  courses CourseTag[]
+
+  @@map("tags")
+}
+
+model CourseTag {
+  courseId String @map("course_id") @db.Uuid
+  tagId    String @map("tag_id") @db.Uuid
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([courseId, tagId])
+  @@index([tagId])
+  @@map("course_tags")
+}
+
+model Course {
+  id              String       @id @default(uuid(7)) @db.Uuid
+  categoryId      String?      @map("category_id") @db.Uuid
+  title           String       @db.VarChar(160)
+  /// RG-16 : unique ; figé dès la première publication.
+  slug            String       @unique @db.VarChar(180)
+  subtitle        String?      @db.VarChar(240)
+  /// Document Tiptap (JSONB).
+  description     Json?
+  coverMediaId    String?      @map("cover_media_id") @db.Uuid
+  trailerMediaId  String?      @map("trailer_media_id") @db.Uuid
+  level           CourseLevel  @default(BEGINNER)
+  language        String       @default("fr") @db.VarChar(10)
+  /// GNF, CHECK (price >= 0) dans la migration.
+  price           BigInt       @default(0)
+  /// GNF, CHECK (compare_at_price > price) dans la migration.
+  compareAtPrice  BigInt?      @map("compare_at_price")
+  status          CourseStatus @default(DRAFT)
+  scheduledAt     DateTime?    @map("scheduled_at") @db.Timestamptz(3)
+  durationSeconds Int          @default(0) @map("duration_seconds")
+  publishedAt     DateTime?    @map("published_at") @db.Timestamptz(3)
+  createdAt       DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt       DateTime?    @map("deleted_at") @db.Timestamptz(3)
+
+  category   Category?         @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  cover      Media?            @relation("CourseCover", fields: [coverMediaId], references: [id], onDelete: SetNull)
+  trailer    Media?            @relation("CourseTrailer", fields: [trailerMediaId], references: [id], onDelete: SetNull)
+  objectives CourseObjective[]
+  sections   Section[]
+  tags       CourseTag[]
+
+  @@index([status, publishedAt])
+  @@index([categoryId])
+  /// F-12 : recherche par trigrammes sur le titre (déclaré ici pour que Prisma ne le supprime pas).
+  @@index([title(ops: raw("gin_trgm_ops"))], type: Gin, map: "courses_title_trgm_idx")
+  @@map("courses")
+}
+
+model CourseObjective {
+  id        String        @id @default(uuid(7)) @db.Uuid
+  courseId  String        @map("course_id") @db.Uuid
+  kind      ObjectiveKind
+  text      String        @db.VarChar(200)
+  position  Int
+  createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([courseId, kind, position])
+  @@map("course_objectives")
+}
+
+model Section {
+  id        String    @id @default(uuid(7)) @db.Uuid
+  courseId  String    @map("course_id") @db.Uuid
+  title     String    @db.VarChar(160)
+  position  Int
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(3)
+
+  course  Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons Lesson[]
+
+  @@index([courseId, position])
+  @@map("sections")
+}
+
+model Lesson {
+  id              String     @id @default(uuid(7)) @db.Uuid
+  sectionId       String     @map("section_id") @db.Uuid
+  title           String     @db.VarChar(160)
+  type            LessonType
+  position        Int
+  isFreePreview   Boolean    @default(false) @map("is_free_preview")
+  isPublished     Boolean    @default(false) @map("is_published")
+  durationSeconds Int        @default(0) @map("duration_seconds")
+  createdAt       DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt       DateTime?  @map("deleted_at") @db.Timestamptz(3)
+
+  section Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@index([sectionId, position])
+  @@map("lessons")
+}
