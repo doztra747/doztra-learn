@@ -111,7 +111,37 @@ export function toneFor(seed: string): Tone {
   return TONE_ORDER[hash % TONE_ORDER.length];
 }
 
-/** Emplacement photo en attendant les visuels fournis par Doztra (cf. plan, « Décisions à prendre »). */
+/** Photos du site (public/images, réencodées en WebP sans métadonnées). Crédits : docs/credits-photos.md et /credits. */
+export const PHOTOS = {
+  accueilApprenant: { src: "/images/accueil-apprenant.webp", width: 1024, height: 683, alt: "Un jeune homme sourit devant son ordinateur portable pendant un atelier numérique." },
+  accueilCode: { src: "/images/accueil-code.webp", width: 960, height: 640, alt: "Écran d'ordinateur portable affichant du code dans un éditeur." },
+  connexion: { src: "/images/connexion.webp", width: 960, height: 641, alt: "Deux personnes étudient ensemble du code sur un ordinateur portable." },
+  inscription: { src: "/images/inscription.webp", width: 766, height: 1024, alt: "Des étudiants travaillent avec un ordinateur portable et leurs documents de cours." },
+} as const;
+
+export type Photo = (typeof PHOTOS)[keyof typeof PHOTOS];
+
+/**
+ * Photo recadrée qui remplit son conteneur (object-cover).
+ * Balise <img> plutôt que next/image : next/image ajoute un attribut style en ligne, bloqué par notre CSP stricte
+ * (style-src sans 'unsafe-inline'). Les fichiers sont déjà optimisés (WebP, ≤ 80 Ko).
+ */
+export function PhotoImage({ photo, priority = false, className = "" }: { photo: Photo; priority?: boolean; className?: string }) {
+  return (
+    <img
+      src={photo.src}
+      width={photo.width}
+      height={photo.height}
+      alt={photo.alt}
+      loading={priority ? "eager" : "lazy"}
+      fetchPriority={priority ? "high" : "auto"}
+      decoding="async"
+      className={`absolute inset-0 size-full object-cover ${className}`}
+    />
+  );
+}
+
+/** Emplacement photo neutre, pour les visuels pas encore fournis (ex. capture d'écran d'une leçon de démonstration). */
 export function PhotoPlaceholder({ className = "" }: { className?: string }) {
   return (
     <div className={`grid size-full place-items-center bg-sand text-[#D9CFBF] ${className}`}>

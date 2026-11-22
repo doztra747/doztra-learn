@@ -4,6 +4,7 @@ import { Suspense } from "react";
 
 import { LoginForm } from "@/components/auth/auth-form";
 import { AuthLayout } from "@/components/auth/auth-layout";
+import { PHOTOS } from "@/components/ui";
 import { getCurrentUser } from "@/server/auth/dal";
 import { safeNextPath } from "@/shared/auth";
 
@@ -20,7 +21,7 @@ async function Login({ searchParams }: { searchParams: Promise<Record<string, st
 
 export default function LoginPage(props: PageProps<"/login">) {
   return (
-    <AuthLayout title="Bon retour parmi nous" intro="Connectez-vous pour reprendre vos cours là où vous les avez laissés.">
+    <AuthLayout photo={PHOTOS.connexion} title="Bon retour parmi nous" intro="Connectez-vous pour reprendre vos cours là où vous les avez laissés.">
       <Suspense fallback={<p className="text-muted">Chargement…</p>}>
         <Login searchParams={props.searchParams} />
       </Suspense>

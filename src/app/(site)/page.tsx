@@ -6,7 +6,7 @@ import { Suspense } from "react";
 
 import { CourseCard } from "@/components/course/course-card";
 import { CATEGORY_ICON_DEFS, Icon } from "@/components/icon";
-import { buttonStyles, MoreLink, PhotoPlaceholder, ProgressBar } from "@/components/ui";
+import { buttonStyles, MoreLink, PHOTOS, PhotoImage, ProgressBar } from "@/components/ui";
 import { getFeaturedCourses, getPublicCategories } from "@/server/catalog/catalog.service";
 import { TRAINER } from "@/server/site";
 import { plural } from "@/shared/format";
@@ -116,7 +116,7 @@ export default function HomePage() {
         </div>
         <div className="relative min-w-0 flex-[1_1_360px]">
           <div className="relative aspect-[5/4] overflow-hidden rounded-[32px] bg-sand">
-            <PhotoPlaceholder />
+            <PhotoImage photo={PHOTOS.accueilApprenant} priority />
           </div>
           <div className="absolute bottom-5 left-0 flex w-[min(260px,80%)] items-center gap-3 rounded-[18px] bg-white px-4 py-3.5 shadow-[0_18px_40px_-16px_rgba(15,61,58,.4)]">
             <span className="grid size-10 shrink-0 place-items-center rounded-base bg-forest text-gold">
@@ -181,7 +181,7 @@ export default function HomePage() {
       {/* Formateur */}
       <section className="mx-auto flex max-w-site flex-wrap items-center gap-[clamp(28px,5vw,56px)] px-5 py-[clamp(48px,7vw,88px)]" aria-labelledby="titre-formateur">
         <div className="relative aspect-square min-w-[240px] flex-[0_1_320px] overflow-hidden rounded-[28px] bg-sand">
-          <PhotoPlaceholder />
+          <PhotoImage photo={PHOTOS.accueilCode} />
         </div>
         <div className="min-w-0 flex-[1_1_360px]">
           <span className="text-[13px] font-bold tracking-[.08em] text-terracotta-700 uppercase">Votre formateur</span>

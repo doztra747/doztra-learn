@@ -22,6 +22,7 @@ export function SiteFooter() {
           <nav aria-label="Aide" className="flex flex-col gap-2.5">
             <strong className="text-ink">Aide</strong>
             <a href="mailto:bayo.ibrahima@doztra.com">Contact</a>
+            <Link href="/credits">Crédits photos</Link>
           </nav>
         </div>
       </div>

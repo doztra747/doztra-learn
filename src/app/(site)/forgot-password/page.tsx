@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AuthLayout } from "@/components/auth/auth-layout";
-import { buttonStyles, inputStyles } from "@/components/ui";
+import { buttonStyles, inputStyles, PHOTOS } from "@/components/ui";
 
 export const metadata: Metadata = { title: "Mot de passe oublié" };
 
@@ -10,6 +10,7 @@ export const metadata: Metadata = { title: "Mot de passe oublié" };
 export default function ForgotPasswordPage() {
   return (
     <AuthLayout
+      photo={PHOTOS.connexion}
       title="Mot de passe oublié"
       intro="Indiquez votre adresse e-mail : si un compte existe, vous recevrez un lien de réinitialisation valable 1 heure."
     >
