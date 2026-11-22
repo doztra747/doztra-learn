@@ -86,6 +86,8 @@ npm run db:migration:new -- --name <nom>   # crée une migration SANS l'applique
 npm run db:status
 npm run worker:dev                # worker BullMQ (à créer)
 npm run cli -- owner:create       # crée l'unique compte formateur (RG-05) ; mot de passe saisi sans affichage
+npm run owner:create:prod         # même commande sur la base de production Neon (variables Vercel récupérées puis effacées)
+npx vercel@65.12.1 deploy --prod  # déploiement de production depuis le poste (https://doztra-learn.vercel.app)
 ```
 
 - Ne pas lancer `prisma migrate dev` sans `--create-only` dans un terminal non interactif : il attend une réponse et bloque.

@@ -117,6 +117,17 @@ Décisions du 22/11/2026 : sessions et compteurs de connexion **dans PostgreSQL*
 
 Inscription des apprenants et vérification de l'e-mail (F-01, RG-01, RG-03), mot de passe oublié (F-03), Google (F-04), profil (F-05), double authentification du formateur (F-06), suppression du compte (F-07), rôle assistant, branchement des pages apprenant (lecteur, mes cours, certificats) sur la session.
 
+## Déploiement (22/11/2026)
+
+| Élément | État |
+| --- | --- |
+| Dépôt | GitHub privé `doztra747/doztra-learn`, branche `main` ; CI GitHub Actions verte (lint, types, tests, audit, bout en bout, gitleaks) |
+| Hébergement | Vercel, projet `doztra-learn` (équipe `agent-doztra-whatsapp`), fonctions à Francfort (`fra1`) : **https://doztra-learn.vercel.app** |
+| Base de production | Neon, offre gratuite, Francfort ; migrations appliquées automatiquement par le build de production |
+| Vérifié en production | Pages 200, aucune violation CSP (Edge), `/studio` → connexion, `/api/health/ready` = base OK, en-têtes de sécurité, connexion (Server Action) |
+| Sécurité des dépendances | Faille `effect` (GHSA-7589-6fvf-x4pw, dépendance de Prisma) corrigée par un override `effect ^3.22.1` |
+| À faire | Créer le compte formateur de production (`npm run owner:create:prod`) ; autoriser l'application GitHub de Vercel sur le dépôt pour le redéploiement automatique à chaque push |
+
 ## Phase 3 — Comptes apprenants
 
 - Inscription, vérification e-mail (nécessite l'envoi d'e-mails : SMTP ou Mailpit local), mot de passe oublié, Google OAuth, profil, suppression (F-01, F-03 à F-07).

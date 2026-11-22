@@ -32,7 +32,9 @@ npm run test:e2e                 # tests de bout en bout (build de production + 
 
 ## Déploiement (Vercel)
 
-- La base de production est une base Neon reliée au projet Vercel (variables `DATABASE_URL` et `DATABASE_URL_UNPOOLED` fournies par l'intégration).
+- Production : **https://doztra-learn.vercel.app** (projet Vercel `doztra-learn`, équipe `agent-doztra-whatsapp`, fonctions à Francfort `fra1`).
+- Base de production : Neon (offre gratuite, Francfort), reliée au projet ; variables `DATABASE_URL` (poolée, application) et `DATABASE_URL_UNPOOLED` (directe, migrations) fournies par l'intégration.
 - Le build de production (`npm run vercel-build`) applique les migrations puis construit l'application ; les déploiements de prévisualisation ne modifient pas la base.
-- Variables à définir dans Vercel : `APP_URL` (URL publique), `TRUST_PROXY=true`.
-- Le compte formateur de production se crée depuis un poste : `DATABASE_URL="<url Neon>" npm run cli -- owner:create`.
+- Variables définies dans Vercel : `APP_URL`, `TRUST_PROXY=true` (marquées sensibles).
+- Déployer depuis le poste : `npx vercel@65.12.1 deploy --prod` (le fichier `.vercelignore` empêche l'envoi de tout secret local).
+- Compte formateur de production : `npm run owner:create:prod` (mot de passe saisi sans affichage ; les variables récupérées sont effacées à la fin).

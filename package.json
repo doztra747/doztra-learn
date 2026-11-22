@@ -17,7 +17,8 @@
     "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
     "test:e2e": "playwright test",
     "cli": "node --conditions=react-server --import tsx scripts/cli.mts",
-    "vercel-build": "node scripts/vercel-build.mjs"
+    "vercel-build": "node scripts/vercel-build.mjs",
+    "owner:create:prod": "node scripts/owner-create-prod.mjs"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
